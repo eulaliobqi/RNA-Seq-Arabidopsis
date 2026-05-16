@@ -4,10 +4,10 @@
 # Parâmetros técnicos (cpus, memória) ficam em nextflow.config.
 # ============================================================
 
-# ── Genoma TAIR10 (paths absolutos no servidor) ───────────────
-genome_fasta: "/data/genomes/arabidopsis/TAIR10_chr_all.fas"
-genome_gff3:  "/data/genomes/arabidopsis/TAIR10_GFF3_genes.gff"
-genome_gtf:   ""            # deixar vazio para converter do GFF3
+# ── Genoma de referência ─────────────────────────────────────
+genome_fasta: "Athaliana_genome.fa"
+genome_gff3:  "Athaliana_annot.gff3"
+genome_gtf:   ""            # deixar vazio para converter do GFF3 automaticamente
 genome_index: ""            # deixar vazio para construir automaticamente
 
 # ── Amostras ──────────────────────────────────────────────────
