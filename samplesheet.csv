@@ -1,0 +1,7 @@
+sample,fastq_1,fastq_2,condition,replicate
+WT_rep1,/data/fastq/WT_rep1_R1.fastq.gz,/data/fastq/WT_rep1_R2.fastq.gz,WT,1
+WT_rep2,/data/fastq/WT_rep2_R1.fastq.gz,/data/fastq/WT_rep2_R2.fastq.gz,WT,2
+WT_rep3,/data/fastq/WT_rep3_R1.fastq.gz,/data/fastq/WT_rep3_R2.fastq.gz,WT,3
+mutant_rep1,/data/fastq/mutant_rep1_R1.fastq.gz,/data/fastq/mutant_rep1_R2.fastq.gz,mutant,1
+mutant_rep2,/data/fastq/mutant_rep2_R1.fastq.gz,/data/fastq/mutant_rep2_R2.fastq.gz,mutant,2
+mutant_rep3,/data/fastq/mutant_rep3_R1.fastq.gz,/data/fastq/mutant_rep3_R2.fastq.gz,mutant,3

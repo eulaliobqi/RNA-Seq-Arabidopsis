@@ -1,0 +1,41 @@
+# ── Nextflow ─────────────────────────────────────────────────
+.nextflow/
+.nextflow.log*
+work/
+
+# ── Resultados (dados grandes – não versionar)  ──────────────
+results/
+logs/
+
+# ── Dados brutos ──────────────────────────────────────────────
+data/
+data-raw/
+*.fastq.gz
+*.fq.gz
+*.bam
+*.bai
+*.fa
+*.fasta
+*.fna
+*.gff
+*.gff3
+*.gtf
+
+# ── Cache R ──────────────────────────────────────────────────
+*.rds
+*.RData
+*.Rhistory
+
+# ── Arquivos temporários ─────────────────────────────────────
+*.tmp
+*.log
+*.zip
+__pycache__/
+.DS_Store
+Thumbs.db
+
+# ── Conda ─────────────────────────────────────────────────────
+.conda/
+
+# ── Referência soja (projeto separado, não versionar aqui) ───
+soja-iac/

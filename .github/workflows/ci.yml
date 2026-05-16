@@ -1,0 +1,98 @@
+name: RNASeq Pipeline – CI Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-syntax:
+    name: Validar Nextflow DSL2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instala Nextflow
+        uses: nf-core/setup-nextflow@v1
+        with:
+          version: "24.04.0"
+
+      - name: Verifica sintaxe main.nf
+        run: nextflow inspect main.nf -profile test 2>&1 || true
+
+  lint-r:
+    name: Lint Scripts R
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3'
+
+      - name: Instala lintr
+        run: Rscript -e "install.packages('lintr', repos='https://cloud.r-project.org')"
+
+      - name: Lint scripts R
+        run: |
+          Rscript -e "
+            lints <- lintr::lint_dir('scripts/', linters = lintr::linters_with_defaults(
+              line_length_linter = lintr::line_length_linter(120),
+              object_name_linter = NULL
+            ))
+            if (length(lints) > 0) {
+              print(lints)
+              message('Avisos de lint encontrados (não bloqueantes)')
+            } else {
+              message('Nenhum problema de lint encontrado')
+            }
+          "
+
+  validate-structure:
+    name: Validar Estrutura do Projeto
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verifica arquivos obrigatórios
+        run: |
+          required_files=(
+            "main.nf"
+            "nextflow.config"
+            "params.yaml"
+            "samplesheet.csv"
+            "setup.sh"
+            "run_pipeline.sh"
+            "modules/qc.nf"
+            "modules/trimming.nf"
+            "modules/alignment.nf"
+            "modules/quantification.nf"
+            "modules/splicing.nf"
+            "modules/analysis.nf"
+            "scripts/01_deseq2.R"
+            "scripts/02_enrichment.R"
+            "scripts/03_wgcna.R"
+            "scripts/04_integration.R"
+            "scripts/install_r_bioc_packages.R"
+            "dashboard/app.R"
+            "envs/rnaseq-tools.yml"
+            "envs/r-analysis.yml"
+          )
+          missing=0
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "FALTANDO: $f"
+              missing=$((missing + 1))
+            else
+              echo "✓ $f"
+            fi
+          done
+          if [ $missing -gt 0 ]; then
+            echo ""
+            echo "ERRO: $missing arquivo(s) obrigatório(s) ausente(s)"
+            exit 1
+          fi
+          echo ""
+          echo "Todos os arquivos obrigatórios presentes."

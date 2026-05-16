@@ -1,0 +1,44 @@
+# ============================================================
+# params.yaml – Parâmetros biológicos do experimento
+# Edite este arquivo para cada experimento.
+# Parâmetros técnicos (cpus, memória) ficam em nextflow.config.
+# ============================================================
+
+# ── Genoma TAIR10 (paths absolutos no servidor) ───────────────
+genome_fasta: "/data/genomes/arabidopsis/TAIR10_chr_all.fas"
+genome_gff3:  "/data/genomes/arabidopsis/TAIR10_GFF3_genes.gff"
+genome_gtf:   ""            # deixar vazio para converter do GFF3
+genome_index: ""            # deixar vazio para construir automaticamente
+
+# ── Amostras ──────────────────────────────────────────────────
+samplesheet: "samplesheet.csv"
+
+# ── Contraste ─────────────────────────────────────────────────
+control_group:   "WT"
+treatment_group: "mutant"
+
+# ── Qualidade / Trimagem ──────────────────────────────────────
+min_length: 36
+quality:    20
+
+# ── Quantificação ─────────────────────────────────────────────
+feature_type: "exon"
+gene_attr:    "gene_id"
+strandedness: 0            # 0=unstranded | 1=stranded | 2=reversely-stranded
+
+# ── Análise estatística ───────────────────────────────────────
+padj_cutoff:   0.05
+lfc_cutoff:    1.0
+
+# ── Anotação funcional – Arabidopsis thaliana ─────────────────
+kegg_organism: "ath"       # código KEGG para A. thaliana
+
+# ── rMATS (splicing alternativo) ──────────────────────────────
+read_length: 150
+
+# ── Relatório ─────────────────────────────────────────────────
+report_title:  "RNASeq Insight – Arabidopsis thaliana TAIR10"
+report_author: "Eulalio Santos – UFV"
+
+# ── Output ────────────────────────────────────────────────────
+outdir: "results"

@@ -1,0 +1,165 @@
+---
+title: "`r params$report_title`"
+author: "`r params$report_author`"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
+    self-contained: true
+params:
+  report_title: "RNASeq Insight – Arabidopsis thaliana TAIR10"
+  report_author: "Eulalio Santos – UFV"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+suppressPackageStartupMessages({
+  library(readr); library(dplyr); library(ggplot2)
+  library(knitr); library(DT); library(pheatmap)
+  library(scales)
+})
+
+safe_read <- function(path) {
+  if (!file.exists(path)) return(NULL)
+  tryCatch(read_tsv(path, show_col_types = FALSE), error = function(e) NULL)
+}
+
+de_all    <- safe_read("deseq2_data/deseq2_results_all.tsv")
+de_sig    <- safe_read("deseq2_data/deseq2_results_sig.tsv")
+norm      <- safe_read("deseq2_data/normalized_counts.tsv")
+go_bp     <- safe_read("enrichment_data/go_bp_results.tsv")
+kegg      <- safe_read("enrichment_data/kegg_results.tsv")
+splicing  <- safe_read("splicing_data/splicing_significant.tsv")
+modules   <- safe_read("wgcna_data/wgcna_modules.tsv")
+ranking   <- safe_read("integration_data/gene_ranking.tsv")
+cands     <- safe_read("integration_data/key_candidates.tsv")
+```
+
+## 1. Expressão Diferencial
+
+```{r de-summary}
+if (!is.null(de_all)) {
+  n_up   <- sum(de_all$regulation == "up",   na.rm = TRUE)
+  n_down <- sum(de_all$regulation == "down", na.rm = TRUE)
+  cat(sprintf("**Genes up-regulated:** %d  \n**Genes down-regulated:** %d  \n**Total DEGs:** %d",
+              n_up, n_down, n_up + n_down))
+}
+```
+
+```{r volcano, fig.width=7, fig.height=5, fig.cap="Volcano Plot"}
+if (!is.null(de_all)) {
+  df <- de_all |> filter(!is.na(padj))
+  colors <- c("up"="#E41A1C","down"="#377EB8","ns"="grey70")
+  ggplot(df, aes(log2FoldChange, -log10(padj), color = regulation)) +
+    geom_point(alpha=0.5, size=1) +
+    scale_color_manual(values=colors) +
+    geom_vline(xintercept=c(-1,1), linetype="dashed", color="grey40") +
+    geom_hline(yintercept=-log10(0.05), linetype="dashed", color="grey40") +
+    labs(title="Volcano Plot", x="log2 Fold Change", y="-log10(padj)") +
+    theme_bw()
+}
+```
+
+```{r de-table}
+if (!is.null(de_sig)) {
+  de_sig |> head(50) |>
+    select(gene_id, log2FoldChange, baseMean, padj, regulation) |>
+    mutate(across(where(is.numeric), \(x) round(x,4))) |>
+    kable(caption = "Top 50 DEGs")
+}
+```
+
+## 2. Enriquecimento Funcional
+
+### GO Biological Process
+
+```{r go-bp, fig.width=8, fig.height=6, fig.cap="GO Biological Process"}
+if (!is.null(go_bp) && nrow(go_bp) > 0) {
+  df <- go_bp |> head(20) |>
+    mutate(GR = sapply(GeneRatio, function(r) eval(parse(text=r))))
+  ggplot(df, aes(GR, reorder(Description, GR), size=Count, color=p.adjust)) +
+    geom_point() +
+    scale_color_gradient(low="red", high="blue") +
+    labs(x="Gene Ratio", y=NULL, title="GO Biological Process – Top 20") +
+    theme_bw()
+} else {
+  cat("Nenhum resultado GO-BP disponível.")
+}
+```
+
+### KEGG Pathways
+
+```{r kegg, fig.width=8, fig.height=6, fig.cap="KEGG Pathways"}
+if (!is.null(kegg) && nrow(kegg) > 0) {
+  df <- kegg |> head(20) |>
+    mutate(GR = sapply(GeneRatio, function(r) eval(parse(text=r))))
+  ggplot(df, aes(GR, reorder(Description, GR), size=Count, color=p.adjust)) +
+    geom_point() +
+    scale_color_gradient(low="red", high="blue") +
+    labs(x="Gene Ratio", y=NULL, title="KEGG Pathways – Top 20") +
+    theme_bw()
+} else {
+  cat("Nenhum resultado KEGG disponível.")
+}
+```
+
+## 3. Splicing Alternativo
+
+```{r splicing}
+if (!is.null(splicing) && nrow(splicing) > 0) {
+  cat(sprintf("**Eventos significativos (FDR<0.05, |ΔPSI|>0.1):** %d\n", nrow(splicing)))
+  if ("event_type" %in% colnames(splicing)) {
+    splicing |> count(event_type) |>
+      kable(col.names = c("Tipo de evento","Contagem"),
+            caption="Eventos por tipo")
+  }
+} else {
+  cat("Nenhum evento de splicing significativo encontrado.")
+}
+```
+
+## 4. Co-expressão (WGCNA)
+
+```{r wgcna}
+if (!is.null(modules) && nrow(modules) > 0) {
+  modules |> count(module, name="n_genes") |>
+    arrange(desc(n_genes)) |>
+    kable(caption="Genes por módulo WGCNA")
+} else {
+  cat("Resultados WGCNA não disponíveis.")
+}
+```
+
+## 5. Integração Multi-ômica
+
+```{r integration, fig.width=8, fig.height=7, fig.cap="Top 20 genes por Integration Score"}
+if (!is.null(ranking) && nrow(ranking) > 0) {
+  df <- ranking |> head(20)
+  ggplot(df, aes(integration_score, reorder(gene_id, integration_score), fill=regulation)) +
+    geom_col() +
+    scale_fill_manual(values=c("up"="#E41A1C","down"="#377EB8")) +
+    labs(x="Integration Score (0–10)", y=NULL,
+         title="Top 20 Genes Candidatos") +
+    theme_bw()
+}
+```
+
+```{r candidates-table}
+if (!is.null(cands) && nrow(cands) > 0) {
+  cands |> head(30) |>
+    select(gene_id, log2FoldChange, padj, integration_score, evidence_layers,
+           has_splicing, in_pathway, is_hub) |>
+    mutate(across(c(log2FoldChange, integration_score), \(x) round(x,3)),
+           padj = formatC(padj, format="e", digits=2)) |>
+    kable(caption="Candidatos Chave (evidência ≥ 2 camadas)")
+}
+```
+
+## 6. Sessão R
+
+```{r session-info}
+sessionInfo()
+```

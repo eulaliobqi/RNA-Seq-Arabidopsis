@@ -1,0 +1,39 @@
+name: r-analysis
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base>=4.3
+  - bioconductor-deseq2>=1.40
+  - bioconductor-clusterprofiler>=4.8
+  - bioconductor-enrichplot>=1.20
+  - bioconductor-enhancedvolcano>=1.18
+  - bioconductor-fgsea>=1.24
+  - bioconductor-biomart>=2.54
+  - bioconductor-annotationhub>=3.8
+  - bioconductor-org.at.tair.db   # Arabidopsis thaliana – disponível Bioconductor 3.20+
+  - bioconductor-impute
+  - bioconductor-preprocesscore
+  - r-biocmanager
+  - r-ggplot2>=3.4
+  - r-pheatmap>=1.0.12
+  - r-ggrepel>=0.9
+  - r-dplyr>=1.1
+  - r-tidyr>=1.3
+  - r-readr>=2.1
+  - r-stringr>=1.5
+  - r-optparse>=1.7
+  - r-shiny>=1.7
+  - r-shinydashboard>=0.7
+  - r-plotly>=4.10
+  - r-dt>=0.28
+  - r-rmarkdown>=2.20
+  - r-knitr>=1.42
+  - r-htmltools>=0.5
+  - r-scales>=1.2
+  - r-patchwork>=1.1
+  - r-dynamictreecut>=1.63
+  - r-flashclust>=1.01
+  - r-tibble>=3.2
+  - quarto
