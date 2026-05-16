@@ -9,6 +9,7 @@ process FASTQC {
 
     input:
     tuple val(meta), path(reads)
+    val stage
 
     output:
     tuple val(meta), path("*.html"), emit: html
@@ -16,7 +17,6 @@ process FASTQC {
 
     script:
     def (r1, r2) = reads
-    stage = task.ext.stage ?: 'pre_trim'
     """
     fastqc --threads ${task.cpus} --outdir . ${r1} ${r2}
     """
