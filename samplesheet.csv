@@ -1,7 +1,7 @@
 sample,fastq_1,fastq_2,condition,replicate
-WT_rep1,/data/fastq/WT_rep1_R1.fastq.gz,/data/fastq/WT_rep1_R2.fastq.gz,WT,1
-WT_rep2,/data/fastq/WT_rep2_R1.fastq.gz,/data/fastq/WT_rep2_R2.fastq.gz,WT,2
-WT_rep3,/data/fastq/WT_rep3_R1.fastq.gz,/data/fastq/WT_rep3_R2.fastq.gz,WT,3
-mutant_rep1,/data/fastq/mutant_rep1_R1.fastq.gz,/data/fastq/mutant_rep1_R2.fastq.gz,mutant,1
-mutant_rep2,/data/fastq/mutant_rep2_R1.fastq.gz,/data/fastq/mutant_rep2_R2.fastq.gz,mutant,2
-mutant_rep3,/data/fastq/mutant_rep3_R1.fastq.gz,/data/fastq/mutant_rep3_R2.fastq.gz,mutant,3
+COLUMBIA_rep1,/mnt/d/lab/LiMIB/COLUMBIA-1_7_S7_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-1_7_S7_L002_R2_001.fastq.bz2,COLUMBIA,1
+COLUMBIA_rep2,/mnt/d/lab/LiMIB/COLUMBIA-2_8_S8_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-2_8_S8_L002_R2_001.fastq.bz2,COLUMBIA,2
+COLUMBIA_rep3,/mnt/d/lab/LiMIB/COLUMBIA-3_9_S9_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-3_9_S9_L002_R2_001.fastq.bz2,COLUMBIA,3
+NOCAUTE032_rep1,/mnt/d/lab/LiMIB/NOCAUTE-032-1_10_S10_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/NOCAUTE-032-1_10_S10_L002_R2_001.fastq.bz2,NOCAUTE032,1
+NOCAUTE032_rep2,/mnt/d/lab/LiMIB/NOCAUTE-032-2_11_S11_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/NOCAUTE-032-2_11_S11_L002_R2_001.fastq.bz2,NOCAUTE032,2
+NOCAUTE032_rep3,/mnt/d/lab/LiMIB/NOCAUTE-032-3_12_S12_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/NOCAUTE-032-3_12_S12_L002_R2_001.fastq.bz2,NOCAUTE032,3

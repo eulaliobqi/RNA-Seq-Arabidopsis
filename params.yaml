@@ -5,8 +5,8 @@
 # ============================================================
 
 # ── Genoma de referência ─────────────────────────────────────
-genome_fasta: "Athaliana_genome.fa"
-genome_gff3:  "Athaliana_annot.gff3"
+genome_fasta: "/home/eulalio/RNA-Seq-Arabidopsis/Athaliana_genome.fa"
+genome_gff3:  "/home/eulalio/RNA-Seq-Arabidopsis/Athaliana_annot.gff3"
 genome_gtf:   ""            # deixar vazio para converter do GFF3 automaticamente
 genome_index: ""            # deixar vazio para construir automaticamente
 
@@ -14,8 +14,9 @@ genome_index: ""            # deixar vazio para construir automaticamente
 samplesheet: "samplesheet.csv"
 
 # ── Contraste ─────────────────────────────────────────────────
-control_group:   "WT"
-treatment_group: "mutant"
+# IMPORTANTE: sem hífens nos nomes de grupo (quebra fórmula R ~condition)
+control_group:   "COLUMBIA"
+treatment_group: "NOCAUTE032"
 
 # ── Qualidade / Trimagem ──────────────────────────────────────
 min_length: 36
