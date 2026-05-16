@@ -106,26 +106,19 @@ workflow {
     WGCNA(DESEQ2.out.norm_counts, metadata_ch)
 
     // ── Splicing alternativo (rMATS) ─────────────────────────
-    // rMATS exige ≥ 2 BAMs por grupo
-    bam_by_condition = bam_ch
-        .map { meta, bam, bai -> [ meta.condition, bam ] }
-        .groupTuple()
+    control_bams = bam_ch
+        .filter { meta, bam, bai -> meta.condition == params.control_group }
+        .map    { meta, bam, bai -> bam }
+        .collect()
 
-    n_control   = bam_by_condition.filter { cond, _ -> cond == params.control_group   }.map { _, b -> b.size() }.first()
-    n_treatment = bam_by_condition.filter { cond, _ -> cond == params.treatment_group }.map { _, b -> b.size() }.first()
+    treatment_bams = bam_ch
+        .filter { meta, bam, bai -> meta.condition == params.treatment_group }
+        .map    { meta, bam, bai -> bam }
+        .collect()
 
-    run_rmats = n_control.combine(n_treatment).map { nc, nt -> nc >= 2 && nt >= 2 }
-
-    if (run_rmats) {
-        control_bams   = bam_by_condition.filter { cond, _ -> cond == params.control_group   }.map { _, b -> b }
-        treatment_bams = bam_by_condition.filter { cond, _ -> cond == params.treatment_group }.map { _, b -> b }
-        RMATS(control_bams, treatment_bams, gtf_ch)
-        PARSE_RMATS(RMATS.out.results_dir)
-        splicing_ch = PARSE_RMATS.out.significant
-    } else {
-        log.warn "rMATS ignorado: replicatas insuficientes (mínimo 2 por grupo)"
-        splicing_ch = Channel.empty()
-    }
+    RMATS(control_bams, treatment_bams, gtf_ch)
+    PARSE_RMATS(RMATS.out.results_dir)
+    splicing_ch = PARSE_RMATS.out.significant
 
     // ── Integração multi-ômica ───────────────────────────────
     INTEGRATION(
