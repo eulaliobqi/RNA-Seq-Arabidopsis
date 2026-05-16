@@ -6,8 +6,7 @@
 
 nextflow.enable.dsl = 2
 
-include { FASTQC as FASTQC_PRE  } from './modules/qc.nf'
-include { FASTQC as FASTQC_POST } from './modules/qc.nf'
+include { FASTQC_PRE; FASTQC_POST } from './modules/qc.nf'
 include { MULTIQC as MULTIQC_PRE  } from './modules/qc.nf'
 include { MULTIQC as MULTIQC_POST } from './modules/qc.nf'
 include { FASTP                 } from './modules/trimming.nf'
@@ -67,7 +66,7 @@ workflow {
     }
 
     // ── QC pré-trimagem ──────────────────────────────────────
-    FASTQC_PRE(reads_ch, Channel.value("pre_trim"))
+    FASTQC_PRE(reads_ch)
     MULTIQC_PRE(
         FASTQC_PRE.out.zip.collect(),
         Channel.value("pre_trim")
@@ -78,7 +77,7 @@ workflow {
     trimmed_ch = FASTP.out.reads
 
     // ── QC pós-trimagem ──────────────────────────────────────
-    FASTQC_POST(trimmed_ch, Channel.value("post_trim"))
+    FASTQC_POST(trimmed_ch)
     MULTIQC_POST(
         FASTQC_POST.out.zip.collect().mix(FASTP.out.json.collect()),
         Channel.value("post_trim")
