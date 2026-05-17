@@ -82,9 +82,9 @@ if (opt$soft_power == 0) {
 
   # Auto-seleciona power com R² > 0.8
   chosen <- sft$fitIndices |>
-    filter(-sign(V3) * V2 >= 0.8) |>
+    filter(-sign(slope) * SFT.R.sq >= 0.8) |>
     slice(1) |>
-    pull(V1)
+    pull(Power)
   soft_power <- if (length(chosen) == 0) 6 else chosen
   cat(sprintf("Soft power selecionado: %d\n", soft_power))
 } else {
