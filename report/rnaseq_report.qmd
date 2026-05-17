@@ -108,16 +108,81 @@ if (!is.null(kegg) && nrow(kegg) > 0) {
 
 ## 3. Splicing Alternativo
 
-```{r splicing}
-if (!is.null(splicing) && nrow(splicing) > 0) {
-  cat(sprintf("**Eventos significativos (FDR<0.05, |ΔPSI|>0.1):** %d\n", nrow(splicing)))
-  if ("event_type" %in% colnames(splicing)) {
-    splicing |> count(event_type) |>
-      kable(col.names = c("Tipo de evento","Contagem"),
-            caption="Eventos por tipo")
-  }
+```{r splicing-summary}
+has_spl <- !is.null(splicing) && nrow(splicing) > 0 && "event_type" %in% colnames(splicing)
+
+type_labels <- c(SE="Skipped Exon", RI="Retained Intron",
+                 A5SS="Alt. 5' Splice Site", A3SS="Alt. 3' Splice Site",
+                 MXE="Mutually Exclusive Exons")
+type_colors <- c(SE="#E41A1C", RI="#377EB8", A5SS="#4DAF4A", A3SS="#FF7F00", MXE="#984EA3")
+
+if (has_spl) {
+  cat(sprintf("**Eventos significativos** (FDR < 0.05, |ΔPSI| > 0.1): **%d**\n\n", nrow(splicing)))
+  splicing |> count(event_type, name = "Eventos") |>
+    mutate(Tipo = coalesce(type_labels[event_type], event_type)) |>
+    select(Tipo, event_type, Eventos) |>
+    rename(`Código` = event_type) |>
+    arrange(desc(Eventos)) |>
+    kable(caption = "Eventos por tipo")
 } else {
   cat("Nenhum evento de splicing significativo encontrado.")
+}
+```
+
+```{r splicing-barplot, fig.width=6, fig.height=4, fig.cap="Eventos significativos por tipo"}
+if (has_spl) {
+  splicing |> count(event_type) |>
+    ggplot(aes(reorder(event_type, -n), n, fill = event_type)) +
+    geom_col(width = 0.6, show.legend = FALSE) +
+    geom_text(aes(label = n), vjust = -0.4, size = 4) +
+    scale_fill_manual(values = type_colors) +
+    labs(x = NULL, y = "Número de eventos",
+         title = "Splicing Alternativo Significativo") +
+    theme_bw()
+}
+```
+
+```{r splicing-violin, fig.width=7, fig.height=5, fig.cap="Distribuição de ΔPSI por tipo de evento"}
+if (has_spl && "IncLevelDifference" %in% colnames(splicing)) {
+  splicing |>
+    filter(!is.na(IncLevelDifference)) |>
+    ggplot(aes(event_type, IncLevelDifference, fill = event_type)) +
+    geom_violin(alpha = 0.7, draw_quantiles = 0.5, show.legend = FALSE) +
+    geom_jitter(width = 0.12, size = 0.7, alpha = 0.35, show.legend = FALSE) +
+    geom_hline(yintercept = c(-0.1, 0.1), linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = type_colors) +
+    labs(x = NULL, y = "ΔPSI (IncLevelDifference)",
+         title = "Distribuição de ΔPSI por Tipo de Splicing") +
+    theme_bw()
+}
+```
+
+```{r splicing-table}
+if (has_spl) {
+  gene_col <- intersect(c("geneSymbol", "GeneID", "gene_id"), colnames(splicing))[1]
+  psi_col  <- if ("IncLevelDifference" %in% colnames(splicing)) "IncLevelDifference" else NULL
+  fdr_col  <- if ("FDR"               %in% colnames(splicing)) "FDR"               else NULL
+
+  cols <- c(gene_col, "event_type", psi_col, fdr_col)
+  cols <- cols[!is.na(cols)]
+
+  tbl <- splicing |>
+    select(all_of(cols)) |>
+    arrange(if (!is.null(fdr_col)) .data[[fdr_col]] else event_type)
+
+  if (!is.null(psi_col)) tbl[[psi_col]] <- round(tbl[[psi_col]], 3)
+  if (!is.null(fdr_col)) tbl[[fdr_col]] <- formatC(tbl[[fdr_col]], format = "e", digits = 2)
+
+  nice_names <- c("Gene", "Tipo de Evento", "ΔPSI", "FDR")[seq_along(cols)]
+
+  DT::datatable(
+    tbl,
+    colnames    = nice_names,
+    caption     = sprintf("Eventos de splicing significativos (%d total)", nrow(tbl)),
+    filter      = "top",
+    options     = list(pageLength = 15, scrollX = TRUE),
+    rownames    = FALSE
+  )
 }
 ```
 
