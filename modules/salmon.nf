@@ -38,7 +38,7 @@ process SALMON_QUANT {
 
     output:
     // Emite o diretório inteiro da amostra; preserva estrutura no TXIMPORT
-    tuple val(meta), path("${meta.sample}/"), emit: quant_dir
+    tuple val(meta), path("${meta.sample}"), emit: quant_dir
 
     script:
     def (r1, r2) = reads
