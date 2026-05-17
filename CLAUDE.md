@@ -15,7 +15,7 @@ Pipeline RNA-Seq completo para *Arabidopsis thaliana*, adaptado do projeto *Glyc
 - **KEGG**: `ath`
 - **Org.db**: `org.At.tair.db` (Bioconductor 3.20+)
 - **biomaRt dataset**: `"athaliana_eg_gene"` (host: plants.ensembl.org)
-- **IDs TAIR10**: formato `AT[1-5MC]G[0-9]{5}` — **não precisam de limpeza de sufixos**
+- **IDs TAIR10**: formato `AT[1-5MC]G[0-9]{5}` — o gffread adiciona sufixo `.TAIR10` nos IDs do GTF (ex: `AT3G30775.TAIR10`); `org.At.tair.db` **não reconhece** esse sufixo → `02_enrichment.R` remove com `gsub("\\.TAIR10$", "", gene_id)` antes de qualquer chamada ao OrgDb
 - **Cache GO**: `at_go_cache.rds` (se implementado)
 
 ## Critérios de análise
@@ -67,6 +67,8 @@ RESULTS_DIR=results Rscript -e "shiny::runApp('dashboard/app.R', port=3838)"
 - rMATS exige ≥ 2 BAMs por grupo → validado no `main.nf`
 - featureCounts nomeia colunas com path BAM → `PARSE_COUNTS` renomeia para sample names
 - LFC shrinkage: fallback automático `apeglm → ashr → normal`
+- Enrichment GO/KEGG: `keyType="TAIR"` falha no clusterProfiler 4.x com `org.At.tair.db` → converter TAIR → ENTREZID via `bitr()` e usar `keyType="ENTREZID"` para GO; `keyType="kegg"` com `use_internal_data=FALSE` para KEGG
+- Sufixo `.TAIR10` nos IDs: o GTF gerado pelo gffread inclui esse sufixo que `org.At.tair.db` não reconhece → `02_enrichment.R` limpa com gsub antes de qualquer chamada ao OrgDb
 
 ## GitHub
 https://github.com/eulaliobqi/RNA-Seq-Arabidopsis
