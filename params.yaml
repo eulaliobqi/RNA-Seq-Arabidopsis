@@ -15,8 +15,8 @@ samplesheet: "samplesheet.csv"
 
 # ── Contraste ─────────────────────────────────────────────────
 # IMPORTANTE: sem hífens nos nomes de grupo (quebra fórmula R ~condition)
-control_group:   "COLUMBIA"
-treatment_group: "032LIMIB"
+control_group:   "ColWT"
+treatment_group: "BP12"
 
 # ── Qualidade / Trimagem ──────────────────────────────────────
 min_length: 36
@@ -35,7 +35,7 @@ lfc_cutoff:    1.0
 kegg_organism: "ath"       # código KEGG para A. thaliana
 
 # ── rMATS (splicing alternativo) ──────────────────────────────
-read_length: 150
+read_length: 100
 
 # ── Relatório ─────────────────────────────────────────────────
 report_title:  "RNASeq Insight – Arabidopsis thaliana TAIR10"

@@ -1,7 +1,7 @@
 sample,fastq_1,fastq_2,condition,replicate
-COLUMBIA_rep1,/mnt/d/lab/LiMIB/032LIMIB-B3-1_4_S4_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-1_4_S4_L001_R2_001.fastq.bz2,COLUMBIA,1
-COLUMBIA_rep2,/mnt/d/lab/LiMIB/032LIMIB-B3-2_5_S5_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-2_5_S5_L001_R2_001.fastq.bz2,COLUMBIA,2
-COLUMBIA_rep3,/mnt/d/lab/LiMIB/032LIMIB-B3-3_6_S6_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-3_6_S6_L001_R2_001.fastq.bz2,COLUMBIA,3
-032LIMIB_rep1,/mnt/d/lab/LiMIB/032LIMIB-B1-1_1_S1_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-1_1_S1_L001_R2_001.fastq.bz2,032LIMIB,1
-032LIMIB_rep2,/mnt/d/lab/LiMIB/032LIMIB-B1-2_2_S2_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-2_2_S2_L001_R2_001.fastq.bz2,032LIMIB,2
-032LIMIB_rep3,/mnt/d/lab/LiMIB/032LIMIB-B1-3_3_S3_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-3_3_S3_L001_R2_001.fastq.bz2,032LIMIB,3
+ColWT_rep1,/home/eulalio/RNA-Seq-Arabidopsis/SRR634969_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634969_2.fastq.gz,ColWT,1
+ColWT_rep2,/home/eulalio/RNA-Seq-Arabidopsis/SRR634970_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634970_2.fastq.gz,ColWT,2
+ColWT_rep3,/home/eulalio/RNA-Seq-Arabidopsis/SRR634971_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634971_2.fastq.gz,ColWT,3
+BP12_rep1,/home/eulalio/RNA-Seq-Arabidopsis/SRR634972_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634972_2.fastq.gz,BP12,1
+BP12_rep2,/home/eulalio/RNA-Seq-Arabidopsis/SRR634973_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634973_2.fastq.gz,BP12,2
+BP12_rep3,/home/eulalio/RNA-Seq-Arabidopsis/SRR634974_1.fastq.gz,/home/eulalio/RNA-Seq-Arabidopsis/SRR634974_2.fastq.gz,BP12,3
