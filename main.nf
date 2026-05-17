@@ -15,23 +15,19 @@ include { FEATURECOUNTS; PARSE_COUNTS } from './modules/quantification.nf'
 include { RMATS; PARSE_RMATS        } from './modules/splicing.nf'
 include { DESEQ2; ENRICHMENT; WGCNA; INTEGRATION; QUARTO_REPORT } from './modules/analysis.nf'
 
-// ── Validação do samplesheet ──────────────────────────────────
-def validate_samplesheet(sheet) {
-    def required = ['sample','fastq_1','fastq_2','condition','replicate']
-    def header = sheet.first().keySet().toList()
+workflow {
+
+    // ── Lê e valida samplesheet ──────────────────────────────
+    def sheet_rows = file(params.samplesheet).splitCsv(header: true, strip: true)
+    def required   = ['sample','fastq_1','fastq_2','condition','replicate']
+    def header     = sheet_rows[0].keySet().toList()
     required.each { col ->
         if (!header.contains(col))
             error "Coluna obrigatória ausente no samplesheet: '${col}'"
     }
-}
 
-workflow {
-
-    // ── Lê samplesheet ───────────────────────────────────────
     Channel
-        .fromPath(params.samplesheet)
-        .splitCsv(header: true, strip: true)
-        .tap { rows -> validate_samplesheet(rows.toList()) }
+        .from(sheet_rows)
         .map { row ->
             def meta = [
                 sample:    row.sample,
