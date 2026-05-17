@@ -22,6 +22,7 @@ dependencies:
   # GOseq com correção de viés (Fase 1)
   - bioconductor-goseq>=1.58
   - bioconductor-genomicfeatures>=1.58     # comprimentos de genes para GOseq
+  - bioconductor-txdbmaker>=1.2            # makeTxDbFromGFF (movido de GenomicFeatures)
   # Visualização avançada
   - bioconductor-enhancedvolcano>=1.20
   - r-factoextra>=1.0.7                    # PCA melhorado (Fase 1)

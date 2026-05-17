@@ -16,6 +16,15 @@ suppressPackageStartupMessages({
   library(tibble)
 })
 
+# txdbmaker é necessário em GenomicFeatures >= 1.61 (makeTxDbFromGFF foi movido)
+make_txdb <- function(gtf) {
+  if (requireNamespace("txdbmaker", quietly = TRUE)) {
+    txdbmaker::makeTxDbFromGFF(gtf, format = "GTF")
+  } else {
+    GenomicFeatures::makeTxDbFromGFF(gtf, format = "GTF")
+  }
+}
+
 opt_list <- list(
   make_option("--deseq2",      type = "character"),
   make_option("--gtf",         type = "character"),
@@ -50,7 +59,7 @@ cat(sprintf("Total genes testados: %d | DEGs: %d\n", length(is_deg), sum(is_deg)
 # ── Comprimentos de genes a partir do GTF ────────────────────
 cat("Extraindo comprimentos de genes do GTF...\n")
 txdb <- tryCatch(
-  makeTxDbFromGFF(opt$gtf, format = "GTF"),
+  make_txdb(opt$gtf),
   error = function(e) {
     message("Aviso: makeTxDbFromGFF falhou, usando comprimentos uniformes. ", e$message)
     NULL
@@ -74,15 +83,33 @@ if (!is.null(txdb)) {
 }
 
 # ── GOseq: viés de probabilidade ─────────────────────────────
-pwf <- nullp(is_deg, bias.data = gene_lengths, plot.fit = FALSE)
+# Se comprimentos uniformes, nullp não consegue ajustar spline (< 6 valores únicos)
+# → cria pwf manual e usa Hypergeometric (equivalente a Fisher sem correção de viés)
+n_unique_lengths <- length(unique(gene_lengths))
+if (n_unique_lengths >= 6) {
+  pwf          <- nullp(is_deg, bias.data = gene_lengths, plot.fit = FALSE)
+  goseq_method <- "Wallenius"
+  cat("PWF ajustado com comprimentos reais de genes (método Wallenius).\n")
+} else {
+  cat(sprintf("Aviso: apenas %d comprimentos únicos — usando método Hypergeometric (sem correção de viés).\n",
+              n_unique_lengths))
+  pwf <- data.frame(
+    DEgenes   = is_deg,
+    bias.data = gene_lengths,
+    pwf       = sum(is_deg) / length(is_deg),
+    stringsAsFactors = FALSE
+  )
+  rownames(pwf) <- names(is_deg)
+  goseq_method <- "Hypergeometric"
+}
 
-# ── Enriquecimento GO (BP) com Wallenius ─────────────────────
-run_goseq <- function(pwf, ontology) {
+# ── Enriquecimento GO com método selecionado ──────────────────
+run_goseq <- function(pwf, ontology, method = "Wallenius") {
   tryCatch({
     res_go <- goseq(pwf, gene2cat = NULL,
                     genome = "tair10", id = "tair",
                     test.cats = ontology,
-                    method = "Wallenius")
+                    method = method)
     res_go <- res_go |>
       filter(numDEInCat > 0) |>
       mutate(p.adjust = p.adjust(over_represented_pvalue, method = "BH")) |>
@@ -94,9 +121,9 @@ run_goseq <- function(pwf, ontology) {
   })
 }
 
-go_bp <- run_goseq(pwf, "GO:BP")
-go_mf <- run_goseq(pwf, "GO:MF")
-go_cc <- run_goseq(pwf, "GO:CC")
+go_bp <- run_goseq(pwf, "GO:BP", method = goseq_method)
+go_mf <- run_goseq(pwf, "GO:MF", method = goseq_method)
+go_cc <- run_goseq(pwf, "GO:CC", method = goseq_method)
 
 # ── Salva resultados ──────────────────────────────────────────
 write_tsv(go_bp, file.path(opt$outdir, "goseq_bp_results.tsv"))
