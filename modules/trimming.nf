@@ -18,10 +18,12 @@ process FASTP {
 
     script:
     def (r1, r2) = reads
+    def in1 = r1.name.endsWith('.bz2') ? "<(bzcat ${r1})" : "${r1}"
+    def in2 = r2.name.endsWith('.bz2') ? "<(bzcat ${r2})" : "${r2}"
     """
     fastp \\
-        --in1 ${r1} \\
-        --in2 ${r2} \\
+        --in1 ${in1} \\
+        --in2 ${in2} \\
         --out1 ${meta.sample}_R1_trimmed.fastq.gz \\
         --out2 ${meta.sample}_R2_trimmed.fastq.gz \\
         --json ${meta.sample}_fastp.json \\
