@@ -34,19 +34,33 @@ dir.create(opt$figures_dir, showWarnings = FALSE, recursive = TRUE)
 # ── Leitura ──────────────────────────────────────────────────
 res <- read_tsv(opt$deseq2, show_col_types = FALSE)
 
-# IDs TAIR10 já limpos: AT1G01010 — sem limpeza de sufixos necessária
 gene_ids <- res$gene_id
 
-# Genes DEGs (significativos)
 sig_genes <- res |>
   filter(padj < opt$padj, abs(log2FoldChange) > opt$lfc, !is.na(padj)) |>
   pull(gene_id)
 
-# Lista rankeada para GSEA (todos os genes com log2FC)
 gsea_list <- res |>
   filter(!is.na(log2FoldChange), !is.na(padj)) |>
   arrange(desc(log2FoldChange)) |>
   (\(df) setNames(df$log2FoldChange, df$gene_id))()
+
+# ── Conversão TAIR → ENTREZID (necessária para enrichGO/gseGO) ─
+# clusterProfiler 4.x não mapeia keyType="TAIR" diretamente para
+# termos GO em org.At.tair.db; converter para ENTREZID é obrigatório
+entrez_map <- suppressMessages(suppressWarnings(
+  bitr(gene_ids, fromType = "TAIR", toType = "ENTREZID", OrgDb = org.At.tair.db)
+))
+cat(sprintf("IDs mapeados: %d/%d TAIR → Entrez\n", nrow(entrez_map), length(gene_ids)))
+tair2ent <- setNames(entrez_map$ENTREZID, entrez_map$TAIR)
+
+sig_entrez <- na.omit(tair2ent[sig_genes])
+cat(sprintf("DEGs com Entrez ID: %d/%d\n", length(sig_entrez), length(sig_genes)))
+
+# Gene ranking para GSEA com Entrez IDs
+gsea_idx    <- intersect(names(gsea_list), names(tair2ent))
+gsea_entrez <- sort(setNames(gsea_list[gsea_idx], tair2ent[gsea_idx]), decreasing = TRUE)
+gsea_entrez <- gsea_entrez[!duplicated(names(gsea_entrez))]
 
 # ── Função de fallback para outputs vazios ────────────────────
 empty_tsv <- function(path, cols = c("ID","Description","GeneRatio","pvalue","p.adjust","geneID","Count")) {
@@ -57,15 +71,17 @@ empty_tsv <- function(path, cols = c("ID","Description","GeneRatio","pvalue","p.
 }
 
 # ── GO (BP, MF, CC) ───────────────────────────────────────────
-run_go <- function(genes, ontology, label) {
+# Usa ENTREZID: único keyType que mapeia genes → termos GO de forma
+# confiável no org.At.tair.db com clusterProfiler 4.x
+run_go <- function(genes_entrez, ontology, label) {
   out_path <- file.path(opt$outdir, sprintf("go_%s_results.tsv", tolower(label)))
-  if (length(genes) < 5) { empty_tsv(out_path); return(invisible(NULL)) }
+  if (length(genes_entrez) < 5) { empty_tsv(out_path); return(invisible(NULL)) }
 
   tryCatch({
     ego <- enrichGO(
-      gene          = genes,
+      gene          = genes_entrez,
       OrgDb         = org.At.tair.db,
-      keyType       = "TAIR",
+      keyType       = "ENTREZID",
       ont           = ontology,
       pAdjustMethod = "BH",
       pvalueCutoff  = 0.05,
@@ -74,8 +90,7 @@ run_go <- function(genes, ontology, label) {
     )
     if (!is.null(ego) && nrow(as.data.frame(ego)) > 0) {
       write_tsv(as.data.frame(ego), out_path)
-      ego2 <- setReadable(ego, org.At.tair.db, keyType = "TAIR")
-      p <- dotplot(ego2, showCategory = 20, title = sprintf("GO %s – A. thaliana", label))
+      p <- dotplot(ego, showCategory = 20, title = sprintf("GO %s – A. thaliana", label))
       ggsave(file.path(opt$figures_dir, sprintf("go_%s_dotplot.pdf", tolower(label))), p, width = 8, height = 7)
       ggsave(file.path(opt$figures_dir, sprintf("go_%s_dotplot.png", tolower(label))), p, width = 8, height = 7, dpi = 300)
     } else {
@@ -89,9 +104,9 @@ run_go <- function(genes, ontology, label) {
   })
 }
 
-ego_bp <- run_go(sig_genes, "BP", "BP")
-ego_mf <- run_go(sig_genes, "MF", "MF")
-ego_cc <- run_go(sig_genes, "CC", "CC")
+ego_bp <- run_go(sig_entrez, "BP", "BP")
+ego_mf <- run_go(sig_entrez, "MF", "MF")
+ego_cc <- run_go(sig_entrez, "CC", "CC")
 
 # Emap para BP (se ≥ 2 termos)
 if (!is.null(ego_bp) && nrow(as.data.frame(ego_bp)) >= 2) {
@@ -104,14 +119,18 @@ if (!is.null(ego_bp) && nrow(as.data.frame(ego_bp)) >= 2) {
 }
 
 # ── KEGG ──────────────────────────────────────────────────────
+# KEGG Arabidopsis (ath) usa TAIR IDs no banco de dados REST.
+# keyType = "kegg" instrui o clusterProfiler a não tentar converter IDs
 kegg_path <- file.path(opt$outdir, "kegg_results.tsv")
 if (length(sig_genes) >= 5) {
   tryCatch({
     ekegg <- enrichKEGG(
       gene          = sig_genes,
       organism      = opt$organism,
+      keyType       = "kegg",
       pAdjustMethod = "BH",
-      pvalueCutoff  = 0.05
+      pvalueCutoff  = 0.05,
+      use_internal_data = FALSE
     )
     if (!is.null(ekegg) && nrow(as.data.frame(ekegg)) > 0) {
       write_tsv(as.data.frame(ekegg), kegg_path)
@@ -134,12 +153,12 @@ if (length(sig_genes) >= 5) {
 
 # ── GSEA – GO ─────────────────────────────────────────────────
 gsea_go_path <- file.path(opt$outdir, "gsea_go_results.tsv")
-if (length(gsea_list) >= 10) {
+if (length(gsea_entrez) >= 10) {
   tryCatch({
     gsea_go <- gseGO(
-      geneList      = gsea_list,
+      geneList      = gsea_entrez,
       OrgDb         = org.At.tair.db,
-      keyType       = "TAIR",
+      keyType       = "ENTREZID",
       ont           = "BP",
       pAdjustMethod = "BH",
       pvalueCutoff  = 0.05,
@@ -167,11 +186,13 @@ gsea_kegg_path <- file.path(opt$outdir, "gsea_kegg_results.tsv")
 if (length(gsea_list) >= 10) {
   tryCatch({
     gsea_kegg <- gseKEGG(
-      geneList      = gsea_list,
-      organism      = opt$organism,
-      pAdjustMethod = "BH",
-      pvalueCutoff  = 0.05,
-      verbose       = FALSE
+      geneList          = gsea_list,
+      organism          = opt$organism,
+      keyType           = "kegg",
+      pAdjustMethod     = "BH",
+      pvalueCutoff      = 0.05,
+      verbose           = FALSE,
+      use_internal_data = FALSE
     )
     if (!is.null(gsea_kegg) && nrow(as.data.frame(gsea_kegg)) > 0) {
       write_tsv(as.data.frame(gsea_kegg), gsea_kegg_path)
