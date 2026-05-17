@@ -103,8 +103,10 @@ workflow {
     if (params.run_salmon) {
         salmon_idx_ch = SALMON_INDEX(genome_fasta, gtf_ch)
         SALMON_QUANT(trimmed_ch, salmon_idx_ch, gtf_ch)
-        quant_files_ch = SALMON_QUANT.out.quant.map { meta, sf -> sf }.collect()
-        TXIMPORT(quant_files_ch, file(params.samplesheet))
+        // Coleta os diretórios por amostra (sample1/, sample2/ ...)
+        // Nextflow preserva o nome do diretório no work dir do TXIMPORT
+        quant_dirs_ch = SALMON_QUANT.out.quant_dir.map { meta, dir -> dir }.collect()
+        TXIMPORT(quant_dirs_ch, file(params.samplesheet))
     }
 
     // ── Quantificação (featureCounts) ────────────────────────

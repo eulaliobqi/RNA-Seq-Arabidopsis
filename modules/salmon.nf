@@ -15,7 +15,6 @@ process SALMON_INDEX {
 
     script:
     """
-    # Extrai transcritos do FASTA + GTF
     gffread ${gtf} -g ${fasta} -w transcripts.fa
 
     salmon index \\
@@ -29,7 +28,8 @@ process SALMON_INDEX {
 process SALMON_QUANT {
     tag "${meta.sample}"
     label 'medium_mem'
-    publishDir "${params.outdir}/counts/salmon/${meta.sample}", mode: 'copy'
+    // publishDir com path fixo — meta.sample não é resolvível em string literal
+    publishDir "${params.outdir}/counts/salmon", mode: 'copy'
 
     input:
     tuple val(meta), path(reads)
@@ -37,8 +37,8 @@ process SALMON_QUANT {
     path(gtf)
 
     output:
-    tuple val(meta), path("${meta.sample}/quant.sf"), emit: quant
-    path("${meta.sample}/aux_info/"),                 emit: aux
+    // Emite o diretório inteiro da amostra; preserva estrutura no TXIMPORT
+    tuple val(meta), path("${meta.sample}/"), emit: quant_dir
 
     script:
     def (r1, r2) = reads
@@ -63,7 +63,8 @@ process TXIMPORT {
     publishDir "${params.outdir}/counts", mode: 'copy'
 
     input:
-    path(quant_files)
+    // Diretórios de cada amostra (sample1/, sample2/ ...) coletados juntos
+    path(quant_dirs)
     path(samplesheet)
 
     output:
