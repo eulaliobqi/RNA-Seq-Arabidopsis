@@ -20,8 +20,7 @@ process SALMON_INDEX {
     salmon index \\
         --transcripts transcripts.fa \\
         --index salmon_index \\
-        --threads ${task.cpus} \\
-        --gencode
+        --threads ${task.cpus}
     """
 }
 

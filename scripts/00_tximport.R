@@ -26,13 +26,10 @@ for (p in c("quant_dir", "samplesheet"))
 
 dir.create(opt$outdir, showWarnings = FALSE, recursive = TRUE)
 
-# ── Lê samplesheet – suporta CSV e TSV ───────────────────────
+# ── Lê samplesheet (CSV ou TSV por extensão) ──────────────────
 ext  <- tolower(tools::file_ext(opt$samplesheet))
-meta <- if (ext == "csv") {
-  read_csv(opt$samplesheet, show_col_types = FALSE)
-} else {
-  read_tsv(opt$samplesheet, show_col_types = FALSE)
-}
+meta <- if (ext == "csv") read_csv(opt$samplesheet, show_col_types = FALSE) else
+                          read_tsv(opt$samplesheet, show_col_types = FALSE)
 
 if (!"sample" %in% colnames(meta))
   stop(sprintf("Coluna 'sample' não encontrada. Colunas: %s",
@@ -40,34 +37,24 @@ if (!"sample" %in% colnames(meta))
 
 samples <- meta$sample
 
-# ── Localiza quant.sf: procura pelo path direto, depois por glob ──
-# O Nextflow pode renomear diretórios staged (ex: ColWT_rep1_1/) em
-# caso de colisão, então buscamos qualquer subdir com quant.sf
+# ── Localiza quant.sf por amostra (com fallback por glob) ────
 find_quant_sf <- function(base_dir, sample_name) {
-  # Primeiro: caminho esperado
   direct <- file.path(base_dir, sample_name, "quant.sf")
   if (file.exists(direct)) return(direct)
-
-  # Fallback: busca em qualquer subdir que contenha o nome da amostra
-  candidates <- list.files(
-    base_dir, pattern = "quant.sf",
-    recursive = TRUE, full.names = TRUE
-  )
-  # Filtra pelo nome da amostra no path
+  candidates <- list.files(base_dir, pattern = "quant.sf",
+                            recursive = TRUE, full.names = TRUE)
   match <- grep(sample_name, candidates, value = TRUE, fixed = TRUE)
   if (length(match) > 0) return(match[1])
-
   return(NA_character_)
 }
 
 cat(sprintf("Buscando quant.sf em: %s\n", normalizePath(opt$quant_dir)))
-cat(sprintf("Subdirs disponíveis: %s\n",
-            paste(list.dirs(opt$quant_dir, recursive = FALSE, full.names = FALSE),
-                  collapse = ", ")))
+cat(sprintf("Subdirs: %s\n",
+    paste(list.dirs(opt$quant_dir, recursive = FALSE, full.names = FALSE),
+          collapse = ", ")))
 
 quant_files <- vapply(samples, find_quant_sf,
-                      base_dir = opt$quant_dir,
-                      FUN.VALUE = character(1))
+                      base_dir = opt$quant_dir, FUN.VALUE = character(1))
 names(quant_files) <- samples
 
 for (i in seq_along(quant_files)) {
@@ -79,19 +66,36 @@ for (i in seq_along(quant_files)) {
 
 missing <- is.na(quant_files) | !file.exists(quant_files)
 if (any(missing))
-  stop(sprintf("quant.sf não encontrado para: %s",
+  stop(sprintf("quant.sf não encontrado: %s",
                paste(samples[missing], collapse = ", ")))
+
+# ── Constrói tx2gene a partir dos IDs do primeiro quant.sf ───
+# tximport com txOut=FALSE exige tx2gene para agregar tx → gene.
+# IDs TAIR10: AT1G01010.1 → gene AT1G01010
+#              AT1G01010.TAIR10.1 → gene AT1G01010 (remove .N e .TAIR10)
+first_quant <- read_tsv(quant_files[1], show_col_types = FALSE)
+tx_ids      <- first_quant$Name
+# Remove sufixo de versão (.1, .2, ...)
+gene_ids    <- sub("\\.[0-9]+$", "", tx_ids)
+# Remove sufixo .TAIR10 que gffread pode adicionar
+gene_ids    <- gsub("\\.TAIR10$", "", gene_ids)
+tx2gene     <- data.frame(tx = tx_ids, gene = gene_ids)
+
+cat(sprintf("tx2gene: %d transcritos → %d genes únicos\n",
+            nrow(tx2gene), length(unique(tx2gene$gene))))
+cat(sprintf("Exemplo: %s → %s\n", tx2gene$tx[1], tx2gene$gene[1]))
 
 # ── tximport: agrega transcritos → genes ─────────────────────
 txi <- tximport(
   quant_files,
   type                = "salmon",
+  tx2gene             = tx2gene,
   txOut               = FALSE,
-  ignoreTxVersion     = TRUE,
+  ignoreTxVersion     = FALSE,  # gerenciado manualmente no tx2gene
   countsFromAbundance = "scaledTPM"
 )
 
-# ── Limpa IDs (.TAIR10) ───────────────────────────────────────
+# Remove sufixo .TAIR10 residual nos rownames (segurança extra)
 rownames(txi$counts)    <- gsub("\\.TAIR10$", "", rownames(txi$counts))
 rownames(txi$abundance) <- gsub("\\.TAIR10$", "", rownames(txi$abundance))
 
