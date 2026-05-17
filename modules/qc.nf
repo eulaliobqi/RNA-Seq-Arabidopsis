@@ -49,8 +49,8 @@ process MULTIQC {
     val(label)
 
     output:
-    path("multiqc_${label}_report.html"), emit: report
-    path("multiqc_${label}_data/"),       emit: data
+    path("multiqc_${label}_report.html"),      emit: report
+    path("multiqc_${label}_report_data/"),     emit: data
 
     script:
     """
