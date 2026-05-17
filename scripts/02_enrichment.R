@@ -32,7 +32,8 @@ dir.create(opt$outdir,      showWarnings = FALSE, recursive = TRUE)
 dir.create(opt$figures_dir, showWarnings = FALSE, recursive = TRUE)
 
 # ── Leitura ──────────────────────────────────────────────────
-res <- read_tsv(opt$deseq2, show_col_types = FALSE)
+res <- read_tsv(opt$deseq2, show_col_types = FALSE) |>
+  mutate(gene_id = gsub("\\.TAIR10$", "", gene_id))
 
 gene_ids <- res$gene_id
 
