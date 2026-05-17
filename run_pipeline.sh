@@ -6,8 +6,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROFILE="${1:-local}"
-shift 2>/dev/null || true
+if [[ "${1:-}" != -* ]]; then
+    PROFILE="${1:-local}"
+    shift 2>/dev/null || true
+else
+    PROFILE="local"
+fi
 
 # ── Detecta conda/mamba ──────────────────────────────────────
 CONDA_CMD=""
