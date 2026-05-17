@@ -51,6 +51,7 @@ plot_pca <- function(mat, meta, title, file) {
     assay(vst(dds_tmp, blind = TRUE))
   }, error = function(e) log1p(mat))
 
+  vst_mat <- vst_mat[apply(vst_mat, 1, var) > 0, , drop = FALSE]
   pca    <- prcomp(t(vst_mat), scale. = TRUE)
   pvar   <- summary(pca)$importance[2, ]
   df_pca <- data.frame(
