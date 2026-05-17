@@ -1,7 +1,7 @@
 sample,fastq_1,fastq_2,condition,replicate
-COLUMBIA_rep1,/mnt/d/lab/LiMIB/COLUMBIA-1_7_S7_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-1_7_S7_L002_R2_001.fastq.bz2,COLUMBIA,1
-COLUMBIA_rep2,/mnt/d/lab/LiMIB/COLUMBIA-2_8_S8_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-2_8_S8_L002_R2_001.fastq.bz2,COLUMBIA,2
-COLUMBIA_rep3,/mnt/d/lab/LiMIB/COLUMBIA-3_9_S9_L002_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/COLUMBIA-3_9_S9_L002_R2_001.fastq.bz2,COLUMBIA,3
+COLUMBIA_rep1,/mnt/d/lab/LiMIB/032LIMIB-B3-1_4_S4_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-1_4_S4_L001_R2_001.fastq.bz2,COLUMBIA,1
+COLUMBIA_rep2,/mnt/d/lab/LiMIB/032LIMIB-B3-2_5_S5_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-2_5_S5_L001_R2_001.fastq.bz2,COLUMBIA,2
+COLUMBIA_rep3,/mnt/d/lab/LiMIB/032LIMIB-B3-3_6_S6_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B3-3_6_S6_L001_R2_001.fastq.bz2,COLUMBIA,3
 032LIMIB_rep1,/mnt/d/lab/LiMIB/032LIMIB-B1-1_1_S1_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-1_1_S1_L001_R2_001.fastq.bz2,032LIMIB,1
 032LIMIB_rep2,/mnt/d/lab/LiMIB/032LIMIB-B1-2_2_S2_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-2_2_S2_L001_R2_001.fastq.bz2,032LIMIB,2
 032LIMIB_rep3,/mnt/d/lab/LiMIB/032LIMIB-B1-3_3_S3_L001_R1_001.fastq.bz2,/mnt/d/lab/LiMIB/032LIMIB-B1-3_3_S3_L001_R2_001.fastq.bz2,032LIMIB,3
