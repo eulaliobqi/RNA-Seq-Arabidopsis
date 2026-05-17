@@ -31,7 +31,7 @@ process RMATS {
         -t paired \\
         --readLength ${params.read_length} \\
         --nthread ${task.cpus} \\
-        --statoff
+        --novelSS
     """
 }
 
