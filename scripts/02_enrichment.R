@@ -46,7 +46,7 @@ sig_genes <- res |>
 gsea_list <- res |>
   filter(!is.na(log2FoldChange), !is.na(padj)) |>
   arrange(desc(log2FoldChange)) |>
-  { x <- x <- setNames(x$log2FoldChange, x$gene_id); x }()
+  (\(df) setNames(df$log2FoldChange, df$gene_id))()
 
 # ── Função de fallback para outputs vazios ────────────────────
 empty_tsv <- function(path, cols = c("ID","Description","GeneRatio","pvalue","p.adjust","geneID","Count")) {
