@@ -73,7 +73,7 @@ process HISAT2_ALIGN {
         -S ${meta.sample}.sam
 
     # Valida taxa de alinhamento (gate mínimo 40%)
-    ALIGN_RATE=\$(grep "overall alignment rate" ${meta.sample}_hisat2.log | grep -oP '[0-9.]+' | head -1)
+    ALIGN_RATE=\$(grep -i "overall alignment rate" ${meta.sample}_hisat2.log | grep -oP '[0-9.]+' | head -1)
     awk -v rate="\$ALIGN_RATE" 'BEGIN { if (rate+0 < 40) { print "ERRO: taxa de alinhamento " rate "% < 40% para ${meta.sample}"; exit 1 } }'
     """
 }
