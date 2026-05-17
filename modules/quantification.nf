@@ -67,6 +67,7 @@ process PARSE_COUNTS {
 
     ordered = [s for s in meta['sample'].tolist() if s in df_counts.columns]
     df_counts = df_counts[ordered]
+    df_counts.index = df_counts.index.str.replace(r'\\.TAIR10$', '', regex=True)
     df_counts.index.name = "gene_id"
     df_counts.to_csv("counts_clean.tsv", sep="\\t")
 
