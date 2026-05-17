@@ -18,9 +18,9 @@ process RMATS {
     def ctrl_list = control_bams.collect { it.toString() }.join(',')
     def trt_list  = treatment_bams.collect { it.toString() }.join(',')
     """
-    # Gera arquivos de lista para rMATS
-    echo "${ctrl_list}" | tr ',' '\\n' > b1.txt
-    echo "${trt_list}"  | tr ',' '\\n' > b2.txt
+    # rMATS exige uma única linha com BAMs separados por vírgula
+    echo "${ctrl_list}" > b1.txt
+    echo "${trt_list}"  > b2.txt
 
     python \$(which rmats.py) \\
         --b1 b1.txt \\
