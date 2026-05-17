@@ -16,7 +16,7 @@ samplesheet: "samplesheet.csv"
 # ── Contraste ─────────────────────────────────────────────────
 # IMPORTANTE: sem hífens nos nomes de grupo (quebra fórmula R ~condition)
 control_group:   "COLUMBIA"
-treatment_group: "NOCAUTE032"
+treatment_group: "032LIMIB"
 
 # ── Qualidade / Trimagem ──────────────────────────────────────
 min_length: 36
