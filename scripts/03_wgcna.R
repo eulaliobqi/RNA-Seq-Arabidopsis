@@ -39,11 +39,11 @@ meta <- read_tsv(opt$metadata, show_col_types = FALSE) |> as.data.frame()
 # Transpõe: amostras nas linhas, genes nas colunas
 datExpr <- t(expr)
 
-# ── Seleciona genes com maior variância ───────────────────────
-n_genes <- min(opt$min_genes, ncol(datExpr))
-vars     <- apply(datExpr, 2, var)
-datExpr  <- datExpr[, order(vars, decreasing = TRUE)[1:n_genes]]
-cat(sprintf("Genes para WGCNA: %d\n", ncol(datExpr)))
+# ── Seleciona genes pela MAD (robusta a outliers) ─────────────
+n_genes  <- min(opt$min_genes, ncol(datExpr))
+mad_vals <- apply(datExpr, 2, mad)
+datExpr  <- datExpr[, order(mad_vals, decreasing = TRUE)[1:n_genes]]
+cat(sprintf("Genes para WGCNA (seleção por MAD): %d\n", ncol(datExpr)))
 
 # ── Verifica amostras boas ────────────────────────────────────
 gsg <- goodSamplesGenes(datExpr, verbose = 0)
@@ -80,9 +80,9 @@ if (opt$soft_power == 0) {
   text(sft$fitIndices[, 1], sft$fitIndices[, 5], labels = powers, cex = 0.9, col = "red")
   dev.off()
 
-  # Auto-seleciona power com R² > 0.8
+  # Auto-seleciona power com R² > 0.85 (mais rigoroso para Arabidopsis)
   chosen <- sft$fitIndices |>
-    filter(-sign(slope) * SFT.R.sq >= 0.8) |>
+    filter(-sign(slope) * SFT.R.sq >= 0.85) |>
     slice(1) |>
     pull(Power)
   soft_power <- if (length(chosen) == 0) 6 else chosen
@@ -101,6 +101,7 @@ net <- blockwiseModules(
   mergeCutHeight    = 0.25,
   numericLabels     = FALSE,
   pamRespectsDendro = FALSE,
+  maxBlockSize      = 20000,   # Arabidopsis (~27k genes) cabe em um bloco
   verbose           = 0
 )
 cat(sprintf("Módulos detectados: %s\n", paste(table(net$colors), collapse = ", ")))

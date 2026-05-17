@@ -9,6 +9,7 @@
 suppressPackageStartupMessages({
   library(optparse)
   library(DESeq2)
+  library(edgeR)
   library(ggplot2)
   library(pheatmap)
   library(ggrepel)
@@ -51,9 +52,13 @@ counts <- counts[, common]
 meta   <- meta[common, ]
 meta$condition <- factor(meta$condition, levels = c(opt$control, opt$treatment))
 
-# Filtro: remove genes com < 10 reads totais
-counts <- counts[rowSums(counts) >= 10, ]
-cat(sprintf("Genes após filtro: %d\n", nrow(counts)))
+# Filtragem estatisticamente informada por edgeR::filterByExpr
+# Substitui rowSums >= 10: considera tamanho de biblioteca e design
+dge_tmp <- DGEList(counts = counts, group = meta$condition)
+keep    <- filterByExpr(dge_tmp, group = meta$condition,
+                        min.count = 10, min.total.count = 15)
+counts  <- counts[keep, ]
+cat(sprintf("Genes após filterByExpr: %d\n", nrow(counts)))
 
 # ── DESeq2 ───────────────────────────────────────────────────
 dds <- DESeqDataSetFromMatrix(counts, meta, ~condition)

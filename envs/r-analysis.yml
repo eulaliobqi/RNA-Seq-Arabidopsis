@@ -4,19 +4,43 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - r-base>=4.3
-  - bioconductor-deseq2>=1.40
-  - bioconductor-clusterprofiler>=4.8
-  - bioconductor-enrichplot>=1.20
-  - bioconductor-enhancedvolcano>=1.18
-  - bioconductor-fgsea>=1.24
-  - bioconductor-biomart>=2.54
-  - bioconductor-annotationhub>=3.8
-  - bioconductor-org.at.tair.db   # Arabidopsis thaliana – disponível Bioconductor 3.20+
+  - r-base>=4.4
+  # Expressão diferencial
+  - bioconductor-deseq2>=1.46
+  - bioconductor-edger>=4.4                # filterByExpr (Fase 1)
+  # Importação de quantificação Salmon
+  - bioconductor-tximport>=1.30            # 00_tximport.R (Fase 1)
+  # Correção de batch
+  - bioconductor-sva>=3.52                 # ComBat_seq (Fase 1)
+  # Enriquecimento funcional
+  - bioconductor-clusterprofiler>=4.14
+  - bioconductor-enrichplot>=1.24
+  - bioconductor-fgsea>=1.32
+  - bioconductor-biomart>=2.62
+  - bioconductor-annotationhub>=3.14
+  - bioconductor-org.at.tair.db            # Arabidopsis thaliana
+  # GOseq com correção de viés (Fase 1)
+  - bioconductor-goseq>=1.58
+  - bioconductor-genomicfeatures>=1.58     # comprimentos de genes para GOseq
+  # Visualização avançada
+  - bioconductor-enhancedvolcano>=1.20
+  - r-factoextra>=1.0.7                    # PCA melhorado (Fase 1)
+  # WGCNA
   - bioconductor-impute
   - bioconductor-preprocesscore
+  - r-dynamictreecut>=1.63
+  - r-flashclust>=1.01
+  # Machine Learning (Fase 3)
+  - r-caret>=6.0
+  - r-randomforest>=4.7
+  - r-kernlab>=0.9
+  - r-glmnet>=4.1
+  - r-proc>=1.18
+  # Redes (Fase 3)
+  - r-igraph>=2.0
+  # Utilitários
   - r-biocmanager
-  - r-ggplot2>=3.4
+  - r-ggplot2>=3.5
   - r-pheatmap>=1.0.12
   - r-ggrepel>=0.9
   - r-dplyr>=1.1
@@ -24,16 +48,15 @@ dependencies:
   - r-readr>=2.1
   - r-stringr>=1.5
   - r-optparse>=1.7
-  - r-shiny>=1.7
+  - r-tibble>=3.2
+  - r-scales>=1.3
+  - r-patchwork>=1.2
+  # Dashboard / Relatório
+  - r-shiny>=1.8
   - r-shinydashboard>=0.7
   - r-plotly>=4.10
-  - r-dt>=0.28
-  - r-rmarkdown>=2.20
-  - r-knitr>=1.42
+  - r-dt>=0.32
+  - r-rmarkdown>=2.25
+  - r-knitr>=1.45
   - r-htmltools>=0.5
-  - r-scales>=1.2
-  - r-patchwork>=1.1
-  - r-dynamictreecut>=1.63
-  - r-flashclust>=1.01
-  - r-tibble>=3.2
   - quarto

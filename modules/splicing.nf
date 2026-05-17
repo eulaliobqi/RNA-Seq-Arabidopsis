@@ -96,3 +96,71 @@ process PARSE_RMATS {
     print(f"Eventos totais: {len(all_df)} | Significativos: {len(sig)}")
     """
 }
+
+process RMATS_FILTER {
+    label 'low_mem'
+    publishDir "${params.outdir}/splicing", mode: 'copy'
+
+    input:
+    path(splicing_all)
+
+    output:
+    path("splicing_filtered.tsv"),  emit: filtered
+    path("splicing_summary.txt"),   emit: summary
+
+    script:
+    """
+    #!/usr/bin/env python3
+    import pandas as pd
+
+    try:
+        df = pd.read_csv("${splicing_all}", sep="\\t")
+    except Exception:
+        df = pd.DataFrame()
+
+    if df.empty:
+        df.to_csv("splicing_filtered.tsv", sep="\\t", index=False)
+        open("splicing_summary.txt", "w").write("Nenhum evento disponível.\\n")
+        exit(0)
+
+    # Filtros rigorosos: FDR < 0.05 + |ΔPSI| > 0.1 + cobertura mínima
+    filtered = df.copy()
+
+    if 'FDR' in filtered.columns:
+        filtered = filtered[filtered['FDR'] < 0.05]
+
+    if 'IncLevelDifference' in filtered.columns:
+        filtered = filtered[filtered['IncLevelDifference'].abs() > 0.10]
+
+    # Cobertura mínima: soma de leituras de junção por evento >= 10
+    def parse_counts(s):
+        try:
+            return sum(int(x) for x in str(s).split(',') if x.strip().isdigit())
+        except:
+            return 0
+
+    if 'IJC_SAMPLE_1' in filtered.columns and 'IJC_SAMPLE_2' in filtered.columns:
+        ijc = filtered['IJC_SAMPLE_1'].apply(parse_counts) + \\
+              filtered['IJC_SAMPLE_2'].apply(parse_counts)
+        sjc = filtered['SJC_SAMPLE_1'].apply(parse_counts) + \\
+              filtered['SJC_SAMPLE_2'].apply(parse_counts)
+        filtered = filtered[(ijc + sjc) >= 10]
+
+    filtered.to_csv("splicing_filtered.tsv", sep="\\t", index=False)
+
+    # Sumário por tipo de evento
+    summary_lines = [
+        f"Eventos totais brutos: {len(df)}",
+        f"Eventos após filtros rigorosos: {len(filtered)}",
+        ""
+    ]
+    if 'event_type' in filtered.columns and not filtered.empty:
+        for et, grp in filtered.groupby('event_type'):
+            summary_lines.append(f"  {et}: {len(grp)} eventos")
+
+    with open("splicing_summary.txt", "w") as f:
+        f.write("\\n".join(summary_lines) + "\\n")
+
+    print("\\n".join(summary_lines))
+    """
+}

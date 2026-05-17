@@ -1,6 +1,78 @@
 // ============================================================
-// Módulo: Alinhamento – HISAT2 + samtools
+// Módulo: Alinhamento – STAR (principal) + HISAT2 (legado)
+// Selecionar via params.aligner = 'star' | 'hisat2'
 // ============================================================
+
+// ── STAR ──────────────────────────────────────────────────────
+
+process STAR_INDEX {
+    label 'high_mem'
+    publishDir "${params.outdir}/genome/star_index", mode: 'copy'
+
+    input:
+    path(fasta)
+    path(gtf)
+
+    output:
+    path("star_index/"), emit: index
+
+    script:
+    """
+    mkdir -p star_index
+    STAR \\
+        --runMode genomeGenerate \\
+        --genomeDir star_index \\
+        --genomeFastaFiles ${fasta} \\
+        --sjdbGTFfile ${gtf} \\
+        --runThreadN ${task.cpus} \\
+        --genomeChrBinNbits 16
+    """
+}
+
+process STAR_ALIGN {
+    tag "${meta.sample}"
+    label 'high_mem'
+    publishDir "${params.outdir}/aligned_star", mode: 'copy',
+        saveAs: { fn -> fn.endsWith('.Log.final.out') ? "logs/${fn}" : fn }
+
+    input:
+    tuple val(meta), path(reads)
+    path(index_dir)
+    path(gtf)
+
+    output:
+    tuple val(meta), path("${meta.sample}_Aligned.sortedByCoord.out.bam"),
+                     path("${meta.sample}_Aligned.sortedByCoord.out.bam.bai"), emit: bam
+    path("${meta.sample}_Log.final.out"), emit: log
+
+    script:
+    def (r1, r2) = reads
+    """
+    STAR \\
+        --runMode alignReads \\
+        --runThreadN ${task.cpus} \\
+        --genomeDir ${index_dir} \\
+        --sjdbGTFfile ${gtf} \\
+        --readFilesIn ${r1} ${r2} \\
+        --readFilesCommand zcat \\
+        --outSAMtype BAM SortedByCoordinate \\
+        --outSAMattributes NH HI AS NM MD \\
+        --outFileNamePrefix ${meta.sample}_ \\
+        --outSAMstrandField intronMotif \\
+        --outFilterIntronMotifs RemoveNoncanonical \\
+        --alignSoftClipAtReferenceEnds Yes \\
+        --quantMode TranscriptomeSAM GeneCounts \\
+        --limitBAMsortRAM 10000000000
+
+    samtools index -@ ${task.cpus} ${meta.sample}_Aligned.sortedByCoord.out.bam
+
+    # Valida taxa de alinhamento (gate mínimo 40%)
+    ALIGN_RATE=\$(grep "Uniquely mapped reads %" ${meta.sample}_Log.final.out | grep -oP '[0-9.]+' | head -1)
+    awk -v rate="\$ALIGN_RATE" 'BEGIN { if (rate+0 < 40) { print "ERRO: taxa de alinhamento " rate "% < 40% para ${meta.sample}"; exit 1 } }'
+    """
+}
+
+// ── HISAT2 (mantido para transição/comparação) ─────────────────
 
 process GFFREAD {
     label 'low_mem'

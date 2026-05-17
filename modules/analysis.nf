@@ -127,6 +127,33 @@ process INTEGRATION {
     """
 }
 
+process GOSEQ {
+    label 'medium_mem'
+    publishDir "${params.outdir}/enrichment", mode: 'copy'
+
+    input:
+    path(deseq2_all)
+    path(gtf)
+
+    output:
+    path("goseq_bp_results.tsv"), emit: go_bp
+    path("goseq_mf_results.tsv"), emit: go_mf
+    path("goseq_cc_results.tsv"), emit: go_cc
+    path("figures/"),              emit: figures
+
+    script:
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/02b_goseq.R \\
+        --deseq2      ${deseq2_all} \\
+        --gtf         ${gtf} \\
+        --padj        ${params.padj_cutoff} \\
+        --lfc         ${params.lfc_cutoff} \\
+        --outdir      . \\
+        --figures_dir figures
+    """
+}
+
 process QUARTO_REPORT {
     label 'medium_mem'
     publishDir "${params.outdir}/report", mode: 'copy'

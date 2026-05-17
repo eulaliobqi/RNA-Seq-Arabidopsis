@@ -6,13 +6,25 @@ channels:
 dependencies:
   - python=3.11
   - nextflow>=24.04
+  # QC
   - fastqc=0.12.1
   - multiqc=1.21
   - fastp=0.23.4
+  # Alinhamento – STAR (principal) + HISAT2 (legado/comparação)
+  - star=2.7.11b
   - hisat2=2.2.1
-  - samtools=1.20
+  - samtools=1.21
+  # Quantificação
   - subread=2.0.6
+  - salmon=1.10.3
+  - kallisto=0.50.1
+  # Montagem de transcritos (Fase 2)
+  - stringtie=2.2.3
+  - gffcompare=0.12.6
+  # Anotação genômica
   - gffread=0.12.7
-  - rseqc=5.0.3
+  # Splicing alternativo
   - rmats>=4.1.0
+  # Utilitários
   - pandas>=2.0
+  - rseqc=5.0.3
