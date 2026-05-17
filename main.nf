@@ -64,7 +64,7 @@ workflow {
     // ── QC pré-trimagem ──────────────────────────────────────
     FASTQC_PRE(reads_ch)
     MULTIQC_PRE(
-        FASTQC_PRE.out.zip.collect(),
+        FASTQC_PRE.out.zip.flatMap { meta, zips -> zips }.collect(),
         Channel.value("pre_trim")
     )
 
@@ -75,7 +75,7 @@ workflow {
     // ── QC pós-trimagem ──────────────────────────────────────
     FASTQC_POST(trimmed_ch)
     MULTIQC_POST(
-        FASTQC_POST.out.zip.collect().mix(FASTP.out.json.collect()),
+        FASTQC_POST.out.zip.flatMap { meta, zips -> zips }.collect().mix(FASTP.out.json.collect()),
         Channel.value("post_trim")
     )
 
