@@ -15,7 +15,10 @@ process GFFREAD {
 
     script:
     """
-    gffread ${gff3} -T -o annotation.gtf
+    gffread ${gff3} -T -o annotation_raw.gtf
+    # gffread adds 'chr' prefix to Chr* names from TAIR10 GFF3 (Chr5 → chrChr5),
+    # which breaks rMATS matching against BAMs built from the FASTA (Chr5).
+    sed 's/^chrChr/Chr/' annotation_raw.gtf > annotation.gtf
     """
 }
 
