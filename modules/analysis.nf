@@ -159,7 +159,8 @@ process QUARTO_REPORT {
     cp ${gene_ranking}   integration_data/
     cp ${key_candidates} integration_data/
 
-    mamba run -n r-analysis quarto render ${projectDir}/report/rnaseq_report.qmd \\
+    cp ${projectDir}/report/rnaseq_report.qmd .
+    mamba run -n r-analysis quarto render rnaseq_report.qmd \\
         -P report_title:"${params.report_title}" \\
         -P report_author:"${params.report_author}" \\
         --output rnaseq_report.html
