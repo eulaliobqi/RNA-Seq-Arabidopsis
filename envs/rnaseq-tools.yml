@@ -11,7 +11,7 @@ dependencies:
   - multiqc=1.21
   - fastp=0.23.4
   # Alinhamento – STAR (principal) + HISAT2 (legado/comparação)
-  - star=2.7.11b
+  - star=2.7.10b
   - hisat2=2.2.1
   - samtools=1.21
   # Quantificação

@@ -18,11 +18,8 @@ process STAR_INDEX {
 
     script:
     """
-    # STAR-avx2/avx512 causam segfault em hardware sem suporte AVX2.
-    # Usa STAR-noavx se disponível; fallback para o wrapper genérico.
-    STAR_BIN=\$(which STAR-noavx 2>/dev/null || which STAR)
     mkdir -p star_index
-    \$STAR_BIN \\
+    STAR \\
         --runMode genomeGenerate \\
         --genomeDir star_index \\
         --genomeFastaFiles ${fasta} \\
@@ -51,10 +48,7 @@ process STAR_ALIGN {
     script:
     def (r1, r2) = reads
     """
-    # STAR-avx2/avx512 causam segfault em hardware sem suporte AVX2.
-    # Usa STAR-noavx se disponível; fallback para o wrapper genérico.
-    STAR_BIN=\$(which STAR-noavx 2>/dev/null || which STAR)
-    \$STAR_BIN \\
+    STAR \\
         --runMode alignReads \\
         --runThreadN ${task.cpus} \\
         --genomeDir ${index_dir} \\
