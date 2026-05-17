@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(dplyr)
   library(readr)
+  library(tibble)
 })
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads()

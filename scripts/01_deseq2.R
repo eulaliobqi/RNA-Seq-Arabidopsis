@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(readr)
   library(stringr)
+  library(tibble)
 })
 
 # ── CLI ──────────────────────────────────────────────────────
