@@ -69,6 +69,7 @@ RESULTS_DIR=results Rscript -e "shiny::runApp('dashboard/app.R', port=3838)"
 - LFC shrinkage: fallback automático `apeglm → ashr → normal`
 - Enrichment GO/KEGG: `keyType="TAIR"` falha no clusterProfiler 4.x com `org.At.tair.db` → converter TAIR → ENTREZID via `bitr()` e usar `keyType="ENTREZID"` para GO; `keyType="kegg"` com `use_internal_data=FALSE` para KEGG
 - Sufixo `.TAIR10` nos IDs: o GTF gerado pelo gffread inclui esse sufixo que `org.At.tair.db` não reconhece → `02_enrichment.R` limpa com gsub antes de qualquer chamada ao OrgDb
+- **rMATS FDR=1.0 / contagens zero**: gffread adiciona prefixo `chr` a nomes de cromossomo já capitalizados (`Chr5` → `chrChr5`), causando incompatibilidade entre GTF e BAM (HISAT2 usa nomes do FASTA, ex: `Chr5`). Fix: `sed 's/^chrChr/Chr/'` no processo `GFFREAD` → requer re-execução a partir do GFFREAD (invalida index HISAT2, BAMs e todos os downstream)
 
 ## GitHub
 https://github.com/eulaliobqi/RNA-Seq-Arabidopsis
