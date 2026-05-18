@@ -20,6 +20,7 @@ include { COMBAT_SEQ              }                              from './modules
 include { RMATS; PARSE_RMATS; RMATS_FILTER }                     from './modules/splicing.nf'
 include { STRINGTIE; GFFCOMPARE   }                              from './modules/assembly.nf'
 include { DESEQ2; ENRICHMENT; GOSEQ; WGCNA; INTEGRATION;
+          MACHINE_LEARNING; PPI_NETWORK;
           QUARTO_REPORT            }                              from './modules/analysis.nf'
 
 workflow {
@@ -168,6 +169,16 @@ workflow {
         ENRICHMENT.out.kegg,
         WGCNA.out.modules
     )
+
+    // ── Machine Learning ─────────────────────────────────────
+    if (params.run_ml) {
+        MACHINE_LEARNING(DESEQ2.out.norm_counts, DESEQ2.out.results_all, metadata_ch)
+    }
+
+    // ── Rede PPI (STRING) ─────────────────────────────────────
+    if (params.run_ppi) {
+        PPI_NETWORK(DESEQ2.out.results_all, INTEGRATION.out.ranking)
+    }
 
     // ── Relatório Quarto ─────────────────────────────────────
     QUARTO_REPORT(

@@ -40,6 +40,10 @@ run_combat_seq: true        # Detecta automaticamente; aplica só se PC1>40% + c
 # ── Montagem de transcritos (StringTie) – Fase 2 ──────────────
 run_stringtie: false        # Ativar para identificar transcritos e isoformas novos
 
+# ── Fase 3 ────────────────────────────────────────────────────
+run_ml:  true               # Machine Learning (RF + SVM + ElasticNet)
+run_ppi: true               # Rede PPI via STRING (requer internet no servidor)
+
 # ── Análise estatística ───────────────────────────────────────
 padj_cutoff:   0.05
 lfc_cutoff:    1.0

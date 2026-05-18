@@ -154,6 +154,64 @@ process GOSEQ {
     """
 }
 
+process MACHINE_LEARNING {
+    label 'medium_mem'
+    publishDir "${params.outdir}/ml", mode: 'copy'
+
+    input:
+    path(norm_counts)
+    path(deseq2_all)
+    path(metadata)
+
+    output:
+    path("ml_results.tsv"),         emit: results
+    path("feature_importance.tsv"), emit: features
+    path("figures/"),               emit: figures
+
+    script:
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/06_machine_learning.R \\
+        --norm_counts ${norm_counts} \\
+        --deseq2      ${deseq2_all} \\
+        --metadata    ${metadata} \\
+        --n_features  500 \\
+        --padj        ${params.padj_cutoff} \\
+        --lfc         ${params.lfc_cutoff} \\
+        --outdir      . \\
+        --figures_dir figures
+    """
+}
+
+process PPI_NETWORK {
+    label 'low_mem'
+    publishDir "${params.outdir}/network", mode: 'copy'
+
+    input:
+    path(deseq2_all)
+    path(integration)
+
+    output:
+    path("ppi_edges.tsv"),       emit: edges
+    path("ppi_nodes.tsv"),       emit: nodes
+    path("hub_genes.tsv"),       emit: hubs
+    path("network_summary.txt"), emit: summary
+    path("figures/"),            emit: figures
+
+    script:
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/07_ppi_network.R \\
+        --deseq2      ${deseq2_all} \\
+        --integration ${integration} \\
+        --padj        ${params.padj_cutoff} \\
+        --lfc         ${params.lfc_cutoff} \\
+        --score       400 \\
+        --outdir      . \\
+        --figures_dir figures
+    """
+}
+
 process QUARTO_REPORT {
     label 'medium_mem'
     publishDir "${params.outdir}/report", mode: 'copy'
