@@ -103,27 +103,47 @@ if (n_unique_lengths >= 6) {
   goseq_method <- "Hypergeometric"
 }
 
-# ── Enriquecimento GO com método selecionado ──────────────────
-run_goseq <- function(pwf, ontology, method = "Wallenius") {
+# ── Anotações GO de org.At.tair.db (gene2cat customizado) ────
+# genome="tair10" / id="tair" não está no banco interno do goseq ≥1.58;
+# usa AnnotationDbi para construir o mapeamento gene→GO por ontologia.
+get_gene2go <- function(gene_ids, ontology) {
   tryCatch({
-    res_go <- goseq(pwf, gene2cat = NULL,
-                    genome = "tair10", id = "tair",
-                    test.cats = ontology,
-                    method = method)
-    res_go <- res_go |>
+    go_df <- AnnotationDbi::select(
+      org.At.tair.db,
+      keys    = gene_ids,
+      columns = c("GO", "ONTOLOGY"),
+      keytype = "TAIR"
+    )
+    go_df <- go_df[!is.na(go_df$GO) & go_df$ONTOLOGY == ontology, , drop = FALSE]
+    if (nrow(go_df) == 0) return(list())
+    split(go_df$GO, go_df$TAIR)
+  }, error = function(e) {
+    message("Erro ao carregar anotações GO (", ontology, "): ", e$message)
+    list()
+  })
+}
+
+run_goseq <- function(pwf, ontology, method = "Wallenius") {
+  gene2cat <- get_gene2go(rownames(pwf), ontology)
+  if (length(gene2cat) == 0) {
+    message(sprintf("Nenhuma anotação GO:%s em org.At.tair.db.", ontology))
+    return(data.frame())
+  }
+  tryCatch({
+    res_go <- goseq(pwf, gene2cat = gene2cat, method = method)
+    res_go |>
       filter(numDEInCat > 0) |>
       mutate(p.adjust = p.adjust(over_represented_pvalue, method = "BH")) |>
       arrange(p.adjust)
-    res_go
   }, error = function(e) {
     message(sprintf("GOseq %s falhou: %s", ontology, e$message))
     data.frame()
   })
 }
 
-go_bp <- run_goseq(pwf, "GO:BP", method = goseq_method)
-go_mf <- run_goseq(pwf, "GO:MF", method = goseq_method)
-go_cc <- run_goseq(pwf, "GO:CC", method = goseq_method)
+go_bp <- run_goseq(pwf, "BP", method = goseq_method)
+go_mf <- run_goseq(pwf, "MF", method = goseq_method)
+go_cc <- run_goseq(pwf, "CC", method = goseq_method)
 
 # ── Salva resultados ──────────────────────────────────────────
 write_tsv(go_bp, file.path(opt$outdir, "goseq_bp_results.tsv"))

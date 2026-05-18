@@ -143,22 +143,29 @@ cat(sprintf("Iniciando GENIE3: %d reguladores × %d alvos | %d árvores | %d cor
             if (is.null(regulators)) nrow(expr_mat) else length(regulators),
             length(targets), opt$n_trees, opt$ncores))
 
+run_genie3 <- function(expr_mat, regulators, targets, n_trees, ncores) {
+  tryCatch(
+    GENIE3(exprMatrix = expr_mat, regulators = regulators, targets = targets,
+           treeMethod = "RF", K = "sqrt", nTrees = n_trees, nCores = ncores),
+    error = function(e) {
+      message(sprintf("GENIE3 (nCores=%d) falhou: %s", ncores, e$message))
+      if (ncores > 1L) {
+        message("Repetindo com nCores=1 (modo serial)...")
+        tryCatch(
+          GENIE3(exprMatrix = expr_mat, regulators = regulators, targets = targets,
+                 treeMethod = "RF", K = "sqrt", nTrees = n_trees, nCores = 1L),
+          error = function(e2) {
+            message("GENIE3 (nCores=1) também falhou: ", e2$message)
+            NULL
+          }
+        )
+      } else NULL
+    }
+  )
+}
+
 set.seed(42)
-weight_mat <- tryCatch(
-  GENIE3(
-    exprMatrix = expr_mat,
-    regulators = regulators,
-    targets    = targets,
-    treeMethod = "RF",
-    K          = "sqrt",
-    nTrees     = opt$n_trees,
-    nCores     = opt$ncores
-  ),
-  error = function(e) {
-    message("GENIE3 falhou: ", e$message)
-    NULL
-  }
-)
+weight_mat <- run_genie3(expr_mat, regulators, targets, opt$n_trees, opt$ncores)
 
 if (is.null(weight_mat)) {
   writeLines("GENIE3 falhou durante execução.", file.path(opt$outdir, "genie3_summary.txt"))
