@@ -39,31 +39,54 @@ process LNCRNA_PRED {
     # 3. Extrai transcritos novos (class codes u=intergênico, i=intrónico,
     #    x=antisense, s=shadow) — candidatos a lncRNA
     python3 - <<'PYEOF'
-import re, sys
+import re, os, sys
 
 novel_codes = {'u', 'i', 'x', 's', 'o'}
 out_lines   = []
 code_re     = re.compile(r'class_code "([^"]+)"')
+tid_re      = re.compile(r'transcript_id "([^"]+)"')
 
-with open("gffcmp.merged.gtf") as fh:
-    for line in fh:
-        m = code_re.search(line)
-        if m and m.group(1) in novel_codes:
-            out_lines.append(line)
+# Tentativa 1: gffcmp.annotated.gtf (gffcompare >=0.12)
+# Tentativa 2: gffcmp.merged.gtf (gffcompare antigo)
+for annotated_gtf in ("gffcmp.annotated.gtf", "gffcmp.merged.gtf"):
+    if os.path.exists(annotated_gtf):
+        with open(annotated_gtf) as fh:
+            for line in fh:
+                m = code_re.search(line)
+                if m and m.group(1) in novel_codes:
+                    out_lines.append(line)
+        if out_lines:
+            print(f"Usando {annotated_gtf} com class_code", flush=True)
+            break
 
-# Fallback: usa merged.gtf inteiro se gffcmp.merged.gtf não existir
-if not out_lines:
-    try:
+# Tentativa 3: parse gffcmp.tracking → IDs novos → filtra merged.gtf
+if not out_lines and os.path.exists("gffcmp.tracking"):
+    novel_ids = set()
+    with open("gffcmp.tracking") as fh:
+        for line in fh:
+            parts = line.rstrip('\n').split('\t')
+            if len(parts) >= 4 and parts[3] in novel_codes:
+                novel_ids.add(parts[0])
+    print(f"Tracking: {len(novel_ids)} transcritos novos encontrados", flush=True)
+    if novel_ids and os.path.exists("merged.gtf"):
         with open("merged.gtf") as fh:
             for line in fh:
-                if 'transcript_id' in line:
+                m = tid_re.search(line)
+                if m and m.group(1) in novel_ids:
                     out_lines.append(line)
-    except FileNotFoundError:
-        pass
+
+# Tentativa 4: usa merged.gtf inteiro como fallback final
+if not out_lines and os.path.exists("merged.gtf"):
+    print("AVISO: sem class_code disponível; usando merged.gtf completo como candidatos", flush=True)
+    with open("merged.gtf") as fh:
+        for line in fh:
+            if 'transcript_id' in line:
+                out_lines.append(line)
 
 with open("novel_transcripts.gtf", "w") as fh:
     fh.writelines(out_lines)
-print(f"Transcritos novos extraídos: {len([l for l in out_lines if '\ttranscript\t' in l])}")
+n_tx = len([l for l in out_lines if '\ttranscript\t' in l])
+print(f"Transcritos novos extraídos: {n_tx}", flush=True)
 PYEOF
 
     # 4. Extrai sequências FASTA dos transcritos novos
