@@ -21,6 +21,9 @@ dependencies:
   - bioconductor-org.at.tair.db            # Arabidopsis thaliana
   # GOseq com correção de viés (Fase 1)
   - bioconductor-goseq>=1.58
+  - bioconductor-biostrings>=2.72         # ORF detection para lncRNA (11_lncrna.R)
+  - bioconductor-geoquery>=2.72           # download GEO datasets (10_metanalysis.R)
+  - bioconductor-limma>=3.62             # DE analysis de datasets GEO
   - bioconductor-genomicfeatures>=1.58     # comprimentos de genes para GOseq
   - bioconductor-txdbmaker>=1.2            # makeTxDbFromGFF (movido de GenomicFeatures)
   # Visualização avançada

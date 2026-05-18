@@ -20,8 +20,9 @@ include { COMBAT_SEQ              }                              from './modules
 include { RMATS; PARSE_RMATS; RMATS_FILTER }                     from './modules/splicing.nf'
 include { STRINGTIE; GFFCOMPARE   }                              from './modules/assembly.nf'
 include { DESEQ2; ENRICHMENT; GOSEQ; WGCNA; INTEGRATION;
-          PLANTFDB; GENIE3; MACHINE_LEARNING; PPI_NETWORK;
+          METANALYSIS; PLANTFDB; GENIE3; MACHINE_LEARNING; PPI_NETWORK;
           QUARTO_REPORT            }                              from './modules/analysis.nf'
+include { LNCRNA_PRED             }                              from './modules/lncrna.nf'
 
 workflow {
 
@@ -158,6 +159,9 @@ workflow {
         STRINGTIE(bam_ch, gtf_ch)
         assembled_gtfs_ch = STRINGTIE.out.gtf.map { meta, gtf -> gtf }.collect()
         GFFCOMPARE(assembled_gtfs_ch, gtf_ch)
+
+        // ── lncRNA prediction ────────────────────────────────
+        LNCRNA_PRED(assembled_gtfs_ch, gtf_ch, genome_fasta, DESEQ2.out.results_all)
     }
 
     // ── Integração multi-ômica ───────────────────────────────
@@ -169,6 +173,9 @@ workflow {
         ENRICHMENT.out.kegg,
         WGCNA.out.modules
     )
+
+    // ── Metanálise GEO/SRA ───────────────────────────────────
+    METANALYSIS(DESEQ2.out.results_all)
 
     // ── PlantTFDB ─────────────────────────────────────────────
     tf_file_ch = params.plantfdb_file ?

@@ -154,6 +154,33 @@ process GOSEQ {
     """
 }
 
+process METANALYSIS {
+    label 'medium_mem'
+    publishDir "${params.outdir}/metanalysis", mode: 'copy'
+
+    input:
+    path(deseq2_all)
+
+    output:
+    path("metanalysis_overlap.tsv"),         emit: overlap
+    path("metanalysis_validated_genes.tsv"), emit: validated
+    path("metanalysis_summary.tsv"),         emit: summary
+    path("metanalysis_report.txt"),          emit: report
+    path("figures/"),                        emit: figures
+
+    script:
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/10_metanalysis.R \\
+        --deseq2      ${deseq2_all} \\
+        --geo_ids     "${params.geo_accessions}" \\
+        --padj        ${params.padj_cutoff} \\
+        --lfc         ${params.lfc_cutoff} \\
+        --outdir      . \\
+        --figures_dir figures
+    """
+}
+
 process PLANTFDB {
     label 'low_mem'
     publishDir "${params.outdir}/plantfdb", mode: 'copy'
