@@ -64,7 +64,7 @@ if not out_lines and os.path.exists("gffcmp.tracking"):
     novel_ids = set()
     with open("gffcmp.tracking") as fh:
         for line in fh:
-            parts = line.rstrip('\n').split('\t')
+            parts = line.rstrip().split('\t')
             if len(parts) >= 4 and parts[3] in novel_codes:
                 novel_ids.add(parts[0])
     print(f"Tracking: {len(novel_ids)} transcritos novos encontrados", flush=True)
