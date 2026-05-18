@@ -38,7 +38,7 @@ run_combat_seq: true        # Detecta automaticamente; aplica só se PC1>40% + c
 # Adicione coluna "batch" no samplesheet.csv para ativar detecção
 
 # ── Montagem de transcritos (StringTie) – Fase 2 ──────────────
-run_stringtie: false        # Ativar para identificar transcritos e isoformas novos
+run_stringtie: true         # StringTie + GffCompare + predição lncRNA
 
 # ── Fase 3 ────────────────────────────────────────────────────
 run_ml:  true               # Machine Learning (RF + SVM + ElasticNet)
