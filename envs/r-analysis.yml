@@ -39,7 +39,8 @@ dependencies:
   - r-proc>=1.18
   # Redes (Fase 3)
   - r-igraph>=2.0
-  - r-httr>=1.4                            # STRING API (07_ppi_network.R)
+  - r-httr>=1.4                            # STRING API REST (07_ppi_network.R)
+  - bioconductor-stringdb                  # STRING R package (fallback robusto)
   # Utilitários
   - r-biocmanager
   - r-ggplot2>=3.5
