@@ -37,8 +37,9 @@ dependencies:
   - r-kernlab>=0.9
   - r-glmnet>=4.1
   - r-proc>=1.18
-  # Redes (Fase 3)
+  # Redes e regulação (Fase 3)
   - r-igraph>=2.0
+  - bioconductor-genie3>=1.28              # inferência de rede regulatória (09_genie3.R)
   - r-httr>=1.4                            # STRING API REST (07_ppi_network.R)
   - bioconductor-stringdb                  # STRING R package (fallback robusto)
   # Utilitários

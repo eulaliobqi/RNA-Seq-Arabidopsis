@@ -183,6 +183,42 @@ process PLANTFDB {
     """
 }
 
+process GENIE3 {
+    label 'high_mem'
+    publishDir "${params.outdir}/genie3", mode: 'copy'
+
+    input:
+    path(norm_counts)
+    path(deseq2_all)
+    path(tf_classified)   // PLANTFDB.out.classified (pode ser vazio)
+    path(plantfdb_file)   // arquivo PlantTFDB completo ou NO_FILE
+
+    output:
+    path("genie3_network.tsv"),  emit: network
+    path("genie3_hub_tfs.tsv"),  emit: hubs
+    path("genie3_summary.txt"),  emit: summary
+    path("figures/"),            emit: figures
+
+    script:
+    def tf_cl_arg  = tf_classified.name  != 'NO_FILE' ? "--tf_classified  ${tf_classified}"  : ""
+    def tf_db_arg  = plantfdb_file.name  != 'NO_FILE' ? "--plantfdb_file  ${plantfdb_file}"  : ""
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/09_genie3.R \\
+        --norm_counts  ${norm_counts} \\
+        --deseq2       ${deseq2_all} \\
+        ${tf_cl_arg} \\
+        ${tf_db_arg} \\
+        --padj         ${params.padj_cutoff} \\
+        --lfc          ${params.lfc_cutoff} \\
+        --n_trees      ${params.genie3_trees} \\
+        --n_links      ${params.genie3_links} \\
+        --ncores       ${task.cpus} \\
+        --outdir       . \\
+        --figures_dir  figures
+    """
+}
+
 process MACHINE_LEARNING {
     label 'medium_mem'
     publishDir "${params.outdir}/ml", mode: 'copy'

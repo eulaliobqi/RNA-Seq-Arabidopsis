@@ -46,6 +46,9 @@ run_ppi: true               # Rede PPI via STRING (requer internet no servidor)
 # PlantTFDB: deixar vazio para download automático, ou fornecer path local
 # Download manual: http://planttfdb.gao-lab.org/download.php → Ath_TF_list.txt.gz
 plantfdb_file: ""
+# GENIE3 – rede regulatória gene→TF
+genie3_trees: 500           # número de árvores por gene (500 = rápido, 1000 = preciso)
+genie3_links: 5000          # top N links a reportar
 
 # ── Análise estatística ───────────────────────────────────────
 padj_cutoff:   0.05

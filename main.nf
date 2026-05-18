@@ -20,7 +20,7 @@ include { COMBAT_SEQ              }                              from './modules
 include { RMATS; PARSE_RMATS; RMATS_FILTER }                     from './modules/splicing.nf'
 include { STRINGTIE; GFFCOMPARE   }                              from './modules/assembly.nf'
 include { DESEQ2; ENRICHMENT; GOSEQ; WGCNA; INTEGRATION;
-          PLANTFDB; MACHINE_LEARNING; PPI_NETWORK;
+          PLANTFDB; GENIE3; MACHINE_LEARNING; PPI_NETWORK;
           QUARTO_REPORT            }                              from './modules/analysis.nf'
 
 workflow {
@@ -175,6 +175,14 @@ workflow {
         Channel.value(file(params.plantfdb_file)) :
         Channel.value(file("NO_FILE"))
     PLANTFDB(DESEQ2.out.results_all, tf_file_ch)
+
+    // ── GENIE3 ────────────────────────────────────────────────
+    GENIE3(
+        DESEQ2.out.norm_counts,
+        DESEQ2.out.results_all,
+        PLANTFDB.out.classified,
+        tf_file_ch
+    )
 
     // ── Machine Learning ─────────────────────────────────────
     if (params.run_ml) {
