@@ -43,6 +43,9 @@ run_stringtie: false        # Ativar para identificar transcritos e isoformas no
 # ── Fase 3 ────────────────────────────────────────────────────
 run_ml:  true               # Machine Learning (RF + SVM + ElasticNet)
 run_ppi: true               # Rede PPI via STRING (requer internet no servidor)
+# PlantTFDB: deixar vazio para download automático, ou fornecer path local
+# Download manual: http://planttfdb.gao-lab.org/download.php → Ath_TF_list.txt.gz
+plantfdb_file: ""
 
 # ── Análise estatística ───────────────────────────────────────
 padj_cutoff:   0.05

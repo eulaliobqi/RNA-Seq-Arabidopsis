@@ -154,6 +154,35 @@ process GOSEQ {
     """
 }
 
+process PLANTFDB {
+    label 'low_mem'
+    publishDir "${params.outdir}/plantfdb", mode: 'copy'
+
+    input:
+    path(deseq2_all)
+    path(tf_file)       // arquivo PlantTFDB ou arquivo vazio (optional)
+
+    output:
+    path("tf_deg_classified.tsv"),   emit: classified
+    path("tf_family_summary.tsv"),   emit: summary
+    path("tf_family_enrichment.tsv"),emit: enrichment
+    path("plantfdb_summary.txt"),    emit: report
+    path("figures/"),                emit: figures
+
+    script:
+    def tf_arg = tf_file.name != 'NO_FILE' ? "--tf_file ${tf_file}" : ""
+    """
+    mkdir -p figures
+    mamba run -n r-analysis Rscript ${projectDir}/scripts/08_plantfdb.R \\
+        --deseq2      ${deseq2_all} \\
+        ${tf_arg} \\
+        --padj        ${params.padj_cutoff} \\
+        --lfc         ${params.lfc_cutoff} \\
+        --outdir      . \\
+        --figures_dir figures
+    """
+}
+
 process MACHINE_LEARNING {
     label 'medium_mem'
     publishDir "${params.outdir}/ml", mode: 'copy'
